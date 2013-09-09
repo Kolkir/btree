@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "btree", "btree.vcxproj", "{8E38EDFB-3BD8-4F5C-A302-CA7626DD83C5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "btree_tests", "btree_tests.vcxproj", "{A14A6CE1-7CA6-4C99-928A-5AD7E0B0F6FD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8E38EDFB-3BD8-4F5C-A302-CA7626DD83C5} = {8E38EDFB-3BD8-4F5C-A302-CA7626DD83C5}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

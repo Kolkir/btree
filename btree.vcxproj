@@ -92,7 +92,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(TargetDir)$(ProjectName).dll" "$(SolutionDir)lib\$(ProjectName).dll"
+      <Command>mkdir $(SolutionDir)lib
+copy /Y "$(TargetDir)$(ProjectName).dll" "$(SolutionDir)lib\$(ProjectName).dll"
 copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)lib\$(ProjectName).lib"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -110,7 +111,8 @@ copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)lib\$(ProjectName).lib"<
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(TargetDir)$(ProjectName).dll" "$(SolutionDir)lib\$(ProjectName).dll"
+      <Command>mkdir $(SolutionDir)lib
+copy /Y "$(TargetDir)$(ProjectName).dll" "$(SolutionDir)lib\$(ProjectName).dll"
 copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)lib\$(ProjectName).lib"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -132,7 +134,8 @@ copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)lib\$(ProjectName).lib"<
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(TargetDir)$(ProjectName).dll" "$(SolutionDir)lib\$(ProjectName).dll"
+      <Command>mkdir $(SolutionDir)lib
+copy /Y "$(TargetDir)$(ProjectName).dll" "$(SolutionDir)lib\$(ProjectName).dll"
 copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)lib\$(ProjectName).lib"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -154,7 +157,8 @@ copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)lib\$(ProjectName).lib"<
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(TargetDir)$(ProjectName).dll" "$(SolutionDir)lib\$(ProjectName).dll"
+      <Command>mkdir $(SolutionDir)lib
+copy /Y "$(TargetDir)$(ProjectName).dll" "$(SolutionDir)lib\$(ProjectName).dll"
 copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)lib\$(ProjectName).lib"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

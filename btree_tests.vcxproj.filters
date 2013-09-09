@@ -10,5 +10,6 @@
       <Filter>gtest</Filter>
     </ClCompile>
     <ClCompile Include="tests\main.cpp" />
+    <ClCompile Include="tests\init_test.cpp" />
   </ItemGroup>
 </Project>
