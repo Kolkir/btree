@@ -164,10 +164,13 @@ copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)lib\$(ProjectName).lib"<
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\btree.cpp" />
+    <ClCompile Include="src\recordfile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\btree\btree.h" />
+    <ClInclude Include="include\btree\btreenode.h" />
     <ClInclude Include="include\btree\importexport.h" />
+    <ClInclude Include="include\btree\recordfile.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

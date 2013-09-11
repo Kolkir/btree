@@ -4,7 +4,7 @@
 #include <string>
 #include <fstream>
 #include <algorithm>
-
+/*
 class TreeTest : public ::testing::Test 
 {
 protected:
@@ -12,7 +12,7 @@ protected:
     {
         this->fileName = "test.dat";
         this->keys = "CSDTAMPIBWNGURKEHOLJYQZFXV";
-        this->bTreeSize = 4;
+        this->bTreeOrder = 4;
         this->file = std::fstream(this->fileName, std::ios::in | std::ios::out | std::ios::binary);
         ASSERT_FALSE(file);
     }
@@ -26,17 +26,17 @@ protected:
 
     std::string fileName;
     std::string keys;
-    int bTreeSize;
+    int bTreeOrder;
     std::fstream file;
 };
 
 TEST_F(TreeTest, TestInsert)
 {
-    btree::BTree<char, int> tree(bTreeSize, file);
+    btree::BTree<char, int> tree(bTreeOrder, file);
     tree.insert(keys[0], 0);
     int val = -1;
-    tree.get(keys[0], val);
+    ASSERT_FALSE(tree.get(keys[0], val));
     ASSERT_EQ(0, val);
 };
-
+*/
 

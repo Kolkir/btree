@@ -2,9 +2,12 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="src\btree.cpp" />
+    <ClCompile Include="src\recordfile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\btree\btree.h" />
     <ClInclude Include="include\btree\importexport.h" />
+    <ClInclude Include="include\btree\btreenode.h" />
+    <ClInclude Include="include\btree\recordfile.h" />
   </ItemGroup>
 </Project>
