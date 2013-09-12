@@ -3,29 +3,11 @@
 
 #include <fstream>
 
-struct A : public btree::FileRecord
+struct A
 {
     int x;
     char y;
     float z;
-    
-    virtual size_t getSize() const 
-    {
-        return sizeof(A);
-    }
-    
-    virtual void write(std::ostream& stream) const
-    {
-        stream.write(reinterpret_cast<const char*>(this), getSize());
-    }
-
-    virtual void read(std::istream& stream)
-    {
-        A a;
-        stream.read(reinterpret_cast<char*>(&a), getSize());
-        *this = a;
-    }
-
 };
 
 bool operator== (const A& a, const A& b)
@@ -33,7 +15,19 @@ bool operator== (const A& a, const A& b)
     return a.x == b.x && a.y == b.y && a.z == b.z;
 }
 
+struct B
+{
+    double x;
+    double y;
+    double z;
+};
+
+bool operator== (const B& a, const B& b)
+{
+    return a.x == b.x && a.y == b.y && a.z == b.z;
+}
 //------------------------------------------------------------------------------
+
 class FileRecordTest : public ::testing::Test 
 {
 protected:
@@ -58,18 +52,25 @@ TEST_F(FileRecordTest, Test1)
     a.y = 2;
     a.z = 3.5;
 
+    B b;
+    b.x = 1.78;
+    b.y = 2.56;
+    b.z = 35.5;
+
     std::fstream outFileStream(fname, std::fstream::in | std::fstream::out | std::fstream::binary);
     ASSERT_TRUE(outFileStream.good());
     if (outFileStream)
     {
         btree::RecordFile file(outFileStream);
 
-        auto addr1 = file.append(a);
+        auto addr1 = file.append(btree::PODFileRecord<A>(a));
         ASSERT_TRUE(addr1.first);
-        auto addr2 = file.append(a);
+        auto addr2 = file.append(btree::PODFileRecord<B>(b));
         ASSERT_TRUE(addr2.first);
+        auto addr3 = file.append(btree::PODFileRecord<A>(a));
+        ASSERT_TRUE(addr3.first);
 
-        ASSERT_TRUE(file.write(addr2.second, a));
+        ASSERT_TRUE(file.write(addr2.second, btree::PODFileRecord<A>(a)));
 
         outFileStream.close();
         
@@ -79,11 +80,15 @@ TEST_F(FileRecordTest, Test1)
         {
             btree::RecordFile inFile(inFileStream);
 
-            A b;
-            ASSERT_TRUE(inFile.read(addr2.second, b));
-            ASSERT_EQ(a, b);
-            ASSERT_TRUE(inFile.read(addr1.second, b));
-            ASSERT_EQ(a, b);
+            A a2;
+            btree::PODFileRecord<A> aread(a2);
+            size_t maxLen = 0;
+            ASSERT_TRUE(inFile.read(addr2.second, aread, maxLen));
+            ASSERT_EQ(a, a2);
+            ASSERT_EQ(sizeof(b), maxLen);
+            ASSERT_TRUE(inFile.read(addr1.second, aread, maxLen));
+            ASSERT_EQ(a, a2);
+            ASSERT_EQ(sizeof(a), maxLen);
 
             inFileStream.close();
         }

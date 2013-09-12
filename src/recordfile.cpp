@@ -42,36 +42,27 @@ bool RecordFile::write(RecAddr addr, const FileRecord& rec)
 {
     try
     {
-        this->stream.seekp(addr, std::ios::beg);
-        size_t maxLen = 0;
-        this->stream.read(reinterpret_cast<char*>(&maxLen), sizeof(maxLen));
-
-        if (maxLen >= rec.getSize())
-        {
-            rec.write(this->stream);
-        }
-        else
-        {
-            return false;
-        }
+        this->stream.seekp(addr + sizeof(size_t), std::ios::beg);
+        rec.write(this->stream);
+        return true;
     }
     catch (std::ios::failure&)
     {
         return false;
     }
-    return true;
 }
 
-bool RecordFile::read(RecAddr addr, FileRecord& rec)
+bool RecordFile::read(RecAddr addr, FileRecord& rec, size_t& maxLen)
 {
     try
     {
         this->stream.seekg(addr, std::ios::beg);
-        size_t maxLen = 0;
+        maxLen = 0;
         this->stream.read(reinterpret_cast<char*>(&maxLen), sizeof(maxLen));
         rec.read(this->stream);
         auto pos = this->stream.tellg();
-        assert(pos == static_cast<decltype(pos)>(addr + sizeof(maxLen) + rec.getSize()));
+        auto neededPos = static_cast<decltype(pos)>(addr + sizeof(maxLen) + maxLen);
+        assert(pos <= neededPos);
     }
     catch (std::ios::failure&)
     {
