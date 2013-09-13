@@ -169,6 +169,7 @@ copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)lib\$(ProjectName).lib"<
   <ItemGroup>
     <ClInclude Include="include\btree\btree.h" />
     <ClInclude Include="include\btree\btreenode.h" />
+    <ClInclude Include="include\btree\filelocation.h" />
     <ClInclude Include="include\btree\importexport.h" />
     <ClInclude Include="include\btree\podfilerecord.h" />
     <ClInclude Include="include\btree\stream.h" />

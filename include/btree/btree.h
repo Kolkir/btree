@@ -40,12 +40,12 @@ public:
         this->root.reset(new Node());
     }
 
-    void insert(Key key, RecAddr value)
+    void insert(Key key, FileLocation value)
     {
         auto leafNode = this->findLeafNode(key);
     }
 
-    bool get(Key key, RecAddr& value) const
+    FileLocation* get(Key key) const
     {
         return false;
     }

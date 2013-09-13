@@ -2,6 +2,7 @@
 #define _RECORD_FILE_H_
 
 #include <btree/importexport.h>
+#include <btree/filelocation.h>
 #include <btree/stream.h>
 
 #include <type_traits>
@@ -10,31 +11,6 @@
 
 namespace btree
 {
-
-typedef unsigned long long RecAddr;
-
-class RecordFile;
-
-class BTREE_API FileLocation
-{
-public:
-    ~FileLocation(){};
-
-private:
-    friend class RecordFile;
-
-    FileLocation(RecAddr addr, size_t size) : maxSize(size), addr(addr) {}
-
-    size_t getMaxSize() const {return this->maxSize;}
-    void setMaxSize(size_t size){ this->maxSize = size;}
-
-    RecAddr getAddr() const {return this->addr;}
-    void setAddr(RecAddr addr) { this->addr = addr;}
-
-private:
-    size_t maxSize;
-    RecAddr addr;
-};
 
 class BTREE_API RecordFile
 {
@@ -82,7 +58,7 @@ public:
     {
         this->stream.seekg(loc.getAddr(), std::ios::beg);
 
-        this->stream.beginUnPack(maxLen);
+        this->stream.beginUnPack(loc.getMaxSize());
         value.unpack(this->stream);
         auto size = this->stream.endUnPack();
 

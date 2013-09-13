@@ -18,7 +18,7 @@ template <class T>
 class PODFileRecord<T, typename std::enable_if<std::is_pod<T>::value >::type>
 {
 public:
-    PODFileRecord(T& value) : value(value)
+    PODFileRecord(T& val) : value(val)
     {}
 
     void pack(IOStream& stream) const

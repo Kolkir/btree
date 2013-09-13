@@ -53,7 +53,7 @@ public:
         static_assert(std::is_pod<T>::value, "only POD types are supported");
         this->packBuffer.insert(this->packBuffer.end(), 
                                 reinterpret_cast<const char*>(&value), 
-                                reinterpret_cast<const char*>(&value + sizeof(T)));
+                                reinterpret_cast<const char*>(&value) + sizeof(T));
     }
 
     void beginUnPack(size_t size)
