@@ -1,4 +1,5 @@
 #include <btree/btree.h>
+#include <btree/podfilerecord.h>
 #include <gtest/gtest.h>
 
 #include <fstream>
@@ -64,13 +65,10 @@ TEST_F(FileRecordTest, Test1)
         btree::RecordFile file(outFileStream);
 
         auto addr1 = file.append(btree::PODFileRecord<A>(a));
-        ASSERT_TRUE(addr1.first);
         auto addr2 = file.append(btree::PODFileRecord<B>(b));
-        ASSERT_TRUE(addr2.first);
-        auto addr3 = file.append(btree::PODFileRecord<A>(a));
-        ASSERT_TRUE(addr3.first);
+        file.append(btree::PODFileRecord<A>(a));
 
-        ASSERT_TRUE(file.write(addr2.second, btree::PODFileRecord<A>(a)));
+        file.write(addr2, btree::PODFileRecord<A>(a));
 
         outFileStream.close();
         
@@ -82,13 +80,10 @@ TEST_F(FileRecordTest, Test1)
 
             A a2;
             btree::PODFileRecord<A> aread(a2);
-            size_t maxLen = 0;
-            ASSERT_TRUE(inFile.read(addr2.second, aread, maxLen));
+            inFile.read(addr2, aread);
             ASSERT_EQ(a, a2);
-            ASSERT_EQ(sizeof(b), maxLen);
-            ASSERT_TRUE(inFile.read(addr1.second, aread, maxLen));
+            inFile.read(addr1, aread);
             ASSERT_EQ(a, a2);
-            ASSERT_EQ(sizeof(a), maxLen);
 
             inFileStream.close();
         }

@@ -4,15 +4,19 @@
 #include <string>
 #include <fstream>
 #include <algorithm>
-/*
+#include <string>
+
 class TreeTest : public ::testing::Test 
 {
 protected:
     virtual void SetUp() 
     {
         this->fileName = "test.dat";
-        this->keys = "CSDTAMPIBWNGURKEHOLJYQZFXV";
         this->bTreeOrder = 4;
+
+        {
+            std::ofstream f(this->fileName);
+        }
         this->file = std::fstream(this->fileName, std::ios::in | std::ios::out | std::ios::binary);
         ASSERT_FALSE(file);
     }
@@ -25,18 +29,18 @@ protected:
 
 
     std::string fileName;
-    std::string keys;
     int bTreeOrder;
     std::fstream file;
 };
 
 TEST_F(TreeTest, TestInsert)
 {
-    btree::BTree<char, int> tree(bTreeOrder, file);
-    tree.insert(keys[0], 0);
+    /*btree::BTree<std::string> tree(bTreeOrder);
+    tree.create(file);
+    tree.insert("Hello", 0);
     int val = -1;
-    ASSERT_FALSE(tree.get(keys[0], val));
-    ASSERT_EQ(0, val);
+    ASSERT_FALSE(tree.get("Hello", val));
+    ASSERT_EQ(0, val);*/
 };
-*/
+
 

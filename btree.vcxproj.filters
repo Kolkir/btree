@@ -9,5 +9,7 @@
     <ClInclude Include="include\btree\importexport.h" />
     <ClInclude Include="include\btree\btreenode.h" />
     <ClInclude Include="include\btree\recordfile.h" />
+    <ClInclude Include="include\btree\stream.h" />
+    <ClInclude Include="include\btree\podfilerecord.h" />
   </ItemGroup>
 </Project>
