@@ -18,7 +18,7 @@ protected:
             std::ofstream f(this->fileName);
         }
         this->file = std::fstream(this->fileName, std::ios::in | std::ios::out | std::ios::binary);
-        ASSERT_FALSE(file);
+        ASSERT_TRUE(file.good());
     }
 
     virtual void TearDown() 

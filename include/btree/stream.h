@@ -113,8 +113,11 @@ private:
     std::iostream& stream;
     std::ios::iostate prevState;
 
+    #pragma warning( push )
+    #pragma warning( disable : 4251 )
     std::vector<char> packBuffer;
     std::vector<char>::iterator unPackIterator;
+    #pragma warning( pop )
 };
 
 }
