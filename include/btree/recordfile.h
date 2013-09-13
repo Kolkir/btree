@@ -53,7 +53,6 @@ public:
         this->stream.seekp(0, std::ios::end);
         auto pos = this->stream.tellp();
 
-        this->stream.write(size);//max length
         this->stream.flushPack();
 
         return FileLocation(pos, size);
@@ -68,7 +67,7 @@ public:
         
         if (size <= loc.getMaxSize())
         {
-            this->stream.seekp(loc.getAddr() + sizeof(size_t), std::ios::beg);
+            this->stream.seekp(loc.getAddr(), std::ios::beg);
             this->stream.flushPack();
             return loc;
         }
@@ -82,14 +81,14 @@ public:
     void read(const FileLocation& loc, T& value)
     {
         this->stream.seekg(loc.getAddr(), std::ios::beg);
-        size_t maxLen = 0;
-        this->stream.read(maxLen);
+
         this->stream.beginUnPack(maxLen);
         value.unpack(this->stream);
         auto size = this->stream.endUnPack();
+
         assert(size <= loc.getMaxSize());
         auto pos = this->stream.tellg();
-        auto neededPos = static_cast<decltype(pos)>(loc.getAddr() + sizeof(maxLen) + maxLen);
+        auto neededPos = static_cast<decltype(pos)>(loc.getAddr() + loc.getMaxSize());
         assert(pos <= neededPos);
     }
 
