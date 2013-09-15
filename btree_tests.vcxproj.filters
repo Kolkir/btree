@@ -12,5 +12,9 @@
     <ClCompile Include="tests\main.cpp" />
     <ClCompile Include="tests\init_test.cpp" />
     <ClCompile Include="tests\recfile_test.cpp" />
+    <ClCompile Include="tests\bnode_test.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="tests\treetestfix.h" />
   </ItemGroup>
 </Project>

@@ -38,16 +38,18 @@ public:
         this->nodes.clear();
         this->file.reset(new RecordFile(stream));
         this->root.reset(new Node());
+        this->height = 1;
+        this->nodes.push_back(this->root);
     }
 
-    void insert(Key key, FileLocation value)
+    void insert(Key key, const FileLocation& value)
     {
         auto leafNode = this->findLeafNode(key);
     }
 
     FileLocation* get(Key key) const
     {
-        return false;
+        return nullptr;
     }
 
 private:
@@ -59,7 +61,8 @@ private:
     typedef BTreeNode<Key> Node;
     typedef std::shared_ptr<Node> NodePtr;
 
-    NodePtr findLeafNode(Key key) const; 
+    NodePtr findLeafNode(Key key); 
+    NodePtr fetch(const FileLocation& addr);
 
 private:
     size_t order;
@@ -72,10 +75,26 @@ private:
 //-----------------------------------------------------------------------------
 
 template <class Key>
-typename BTree<Key>::NodePtr BTree<Key>::findLeafNode(Key key) const
+typename BTree<Key>::NodePtr BTree<Key>::findLeafNode(Key key)
 {
-    return nullptr;
+    size_t level = 0;
+    for (; level < this->height; ++level)
+    {
+        auto recLocation = this->nodes[level]->search(key);
+        this->nodes[level] = this->fetch(recLocation);
+    }
+    return this->nodes[level];
 }
+
+template <class Key>
+typename BTree<Key>::NodePtr BTree<Key>::fetch(const FileLocation& loc)
+{
+    NodePtr newNode(new Node());
+    this->file->read(loc, *newNode);
+    newNode->setFileLocation(loc);
+    return newNode;
+}
+
 
 }
 
