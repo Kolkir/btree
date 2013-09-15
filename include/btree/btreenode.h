@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <map>
+#include <algorithm>
 
 namespace btree
 {
@@ -19,6 +20,7 @@ public:
 
     void insert(Key key, const FileLocation& loc)
     {
+        this->index.insert(std::make_pair(key, loc));
     }
 
     FileLocation search(Key key)
@@ -30,8 +32,12 @@ public:
     {
     }
 
-    void pack(IOStream& stream)
+    void pack(IOStream& stream) const
     {
+        std::for_each(this->index.begin(), this->index.end(),
+            [&](const MapIndex::value_type& value)
+        {
+        });
     }
 
     void unpack(IOStream& stream)
@@ -39,7 +45,8 @@ public:
     }
 
 private:
-    std::map<Key, FileLocation> index;
+    typedef std::map<Key, FileLocation> MapIndex;
+    MapIndex index;
 };
 
 }

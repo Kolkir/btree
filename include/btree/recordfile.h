@@ -22,13 +22,15 @@ public:
     template<class T>
     FileLocation append(const T& value)
     {
-        this->stream.beginPack();
+        this->stream.resetPack();
         value.pack(this->stream);
-        auto size = this->stream.endPack();
+        auto size = this->stream.getPackSize();
 
         this->stream.seekp(0, std::ios::end);
         auto pos = this->stream.tellp();
 
+        size += sizeof(size);
+        this->stream.pack_front(size);
         this->stream.flushPack();
 
         return FileLocation(pos, size);
@@ -37,19 +39,28 @@ public:
     template<class T>
     FileLocation write(const FileLocation& loc, const T& value)
     {
-        this->stream.beginPack();
+        this->stream.resetPack();
         value.pack(this->stream);
-        auto size = this->stream.endPack();
+        auto size = this->stream.getPackSize();
         
         if (size <= loc.getMaxSize())
         {
             this->stream.seekp(loc.getAddr(), std::ios::beg);
+            size += sizeof(size);
+            this->stream.pack_front(size);
             this->stream.flushPack();
             return loc;
         }
         else
         {
-            return this->append(value);
+            //append
+            this->stream.seekp(0, std::ios::end);
+            auto pos = this->stream.tellp();
+            size += sizeof(size);
+            this->stream.pack_front(size);
+            this->stream.flushPack();
+
+            return FileLocation(pos, size);
         }
     }
 
@@ -57,15 +68,22 @@ public:
     void read(const FileLocation& loc, T& value)
     {
         this->stream.seekg(loc.getAddr(), std::ios::beg);
-
+        
         this->stream.beginUnPack(loc.getMaxSize());
-        value.unpack(this->stream);
-        auto size = this->stream.endUnPack();
+        
+        size_t recSize = 0;
+        this->stream.unpack(recSize);
+        assert(recSize == loc.getMaxSize());
 
-        assert(size <= loc.getMaxSize());
-        auto pos = this->stream.tellg();
-        auto neededPos = static_cast<decltype(pos)>(loc.getAddr() + loc.getMaxSize());
-        assert(pos <= neededPos);
+        value.unpack(this->stream);
+        auto size = this->stream.getUnPackSize();
+        if (size > 0)
+        {
+            assert(size <= loc.getMaxSize());
+            auto pos = this->stream.tellg();
+            auto maxPos = static_cast<decltype(pos)>(loc.getAddr() + sizeof(size_t) + loc.getMaxSize());
+            assert(pos <= maxPos);
+        }
     }
 
 private:

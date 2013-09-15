@@ -32,12 +32,12 @@ public:
         this->stream.write(reinterpret_cast<const char*>(&value), sizeof(T));
     }
 
-    void beginPack()
+    void resetPack()
     {
         this->packBuffer.clear();
     }
 
-    size_t endPack()
+    size_t getPackSize()
     {
         return this->packBuffer.size();
     }
@@ -56,6 +56,15 @@ public:
                                 reinterpret_cast<const char*>(&value) + sizeof(T));
     }
 
+    template<class T>
+    void pack_front(const T& value)
+    {
+        static_assert(std::is_pod<T>::value, "only POD types are supported");
+        this->packBuffer.insert(this->packBuffer.begin(), 
+                                reinterpret_cast<const char*>(&value), 
+                                reinterpret_cast<const char*>(&value) + sizeof(T));
+    }
+
     void beginUnPack(size_t size)
     {
         this->packBuffer.resize(size);
@@ -63,7 +72,7 @@ public:
         this->unPackIterator = this->packBuffer.begin();
     }
 
-    size_t endUnPack()
+    size_t getUnPackSize()
     {
         return std::distance(this->packBuffer.begin(), this->unPackIterator);
     }
