@@ -64,11 +64,11 @@ TEST_F(FileRecordTest, Test1)
     {
         btree::RecordFile file(outFileStream);
 
-        auto addr1 = file.append(btree::PODFileRecord<A>(a));
-        auto addr2 = file.append(btree::PODFileRecord<B>(b));
-        file.append(btree::PODFileRecord<A>(a));
+        auto addr1 = file.append(a, btree::PackPODFileRecord<A>);
+        auto addr2 = file.append(b, btree::PackPODFileRecord<B>);
+        file.append(a, btree::PackPODFileRecord<A>);
 
-        file.write(addr2, btree::PODFileRecord<A>(a));
+        file.write(addr2, a, btree::PackPODFileRecord<A>);
 
         outFileStream.close();
         
@@ -79,10 +79,9 @@ TEST_F(FileRecordTest, Test1)
             btree::RecordFile inFile(inFileStream);
 
             A a2;
-            btree::PODFileRecord<A> aread(a2);
-            inFile.read(addr2, aread);
+            inFile.read(addr2, a2, btree::UnPackPODFileRecord<A>);
             ASSERT_EQ(a, a2);
-            inFile.read(addr1, aread);
+            inFile.read(addr1, a2, btree::UnPackPODFileRecord<A>);
             ASSERT_EQ(a, a2);
 
             inFileStream.close();

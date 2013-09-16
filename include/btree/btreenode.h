@@ -7,6 +7,7 @@
 #include <iostream>
 #include <map>
 #include <algorithm>
+#include <memory>
 
 namespace btree
 {
@@ -30,23 +31,54 @@ public:
 
     void setFileLocation(const FileLocation& loc)
     {
+        this->fileLocation.reset( new FileLocation(loc));
     }
 
-    void pack(IOStream& stream) const
+    const FileLocation* getFileLocation() const
     {
-        std::for_each(this->index.begin(), this->index.end(),
+        return this->fileLocation.get();
+    }
+
+    template<class Key>
+    friend void BTreeNodePack(const BTreeNode<Key>& node, IOStream& stream)
+    {
+        stream.pack(node.index.size());
+
+        std::for_each(node.index.begin(), node.index.end(),
             [&](const MapIndex::value_type& value)
         {
+            stream.pack(value.first);
+            stream.pack(value.second);
         });
     }
 
-    void unpack(IOStream& stream)
+    template<class Key>
+    friend void BTreeNodeUnPack(BTreeNode<Key>& node, IOStream& stream)
     {
+        size_t indexCount = 0;
+        stream.unpack(indexCount);
+
+        Key key;
+        FileLocation loc;
+
+        node.index.clear();
+        
+        for (size_t i = 0; i < indexCount; ++i)
+        {
+            stream.unpack(key);
+            stream.unpack(loc);
+            node.index.insert(std::make_pair(key, loc));
+        }
     }
+
+private:
+    BTreeNode(const BTreeNode&);
+    BTreeNode& operator= (const BTreeNode&);
 
 private:
     typedef std::map<Key, FileLocation> MapIndex;
     MapIndex index;
+    std::unique_ptr<FileLocation> fileLocation;
 };
 
 }

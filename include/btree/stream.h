@@ -2,10 +2,13 @@
 #define _IOBUFFER_H_
 
 #include <btree/importexport.h>
+#include <btree/defpack.h>
 
+#include <iterator>
 #include <iostream>
 #include <type_traits>
 #include <vector>
+#include <cassert>
 
 namespace btree
 {
@@ -50,20 +53,23 @@ public:
     template<class T>
     void pack(const T& value)
     {
-        static_assert(std::is_pod<T>::value, "only POD types are supported");
-        this->packBuffer.insert(this->packBuffer.end(), 
-                                reinterpret_cast<const char*>(&value), 
-                                reinterpret_cast<const char*>(&value) + sizeof(T));
+        Pack<T> pack;
+        pack.pack(std::back_inserter(this->packBuffer), value);
     }
 
     template<class T>
-    void pack_front(const T& value)
+    void pack(size_t offset, const T& value)
     {
-        static_assert(std::is_pod<T>::value, "only POD types are supported");
-        this->packBuffer.insert(this->packBuffer.begin(), 
-                                reinterpret_cast<const char*>(&value), 
-                                reinterpret_cast<const char*>(&value) + sizeof(T));
+        assert(offset < this->packBuffer.size());
+        if (offset < this->packBuffer.size())
+        {
+            auto iter = this->packBuffer.begin();
+            std::advance(iter, offset);
+            Pack<T> pack;
+            pack.pack(iter, value);
+        }
     }
+
 
     void beginUnPack(size_t size)
     {
@@ -80,11 +86,8 @@ public:
     template<class T>
     void unpack(T& value)
     {
-        static_assert(std::is_pod<T>::value, "only POD types are supported");
-        auto offset = std::distance(this->packBuffer.begin(), this->unPackIterator);
-        value = *reinterpret_cast<T*>(this->packBuffer.data() + offset);
-
-        std::advance(this->unPackIterator, sizeof(T));
+        UnPack<T> unpack;
+        this->unPackIterator = unpack.unpack(this->unPackIterator, value);
     }
 
     template<class T>

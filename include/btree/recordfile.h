@@ -19,35 +19,38 @@ public:
 
     ~RecordFile();
 
-    template<class T>
-    FileLocation append(const T& value)
+    template<class T, class PackFunc>
+    FileLocation append(const T& value, PackFunc packFunc)
     {
         this->stream.resetPack();
-        value.pack(this->stream);
-        auto size = this->stream.getPackSize();
+        size_t size = 0;
+        this->stream.pack(size);
+        packFunc(value, this->stream);
+        size = this->stream.getPackSize();
 
         this->stream.seekp(0, std::ios::end);
         auto pos = this->stream.tellp();
 
-        size += sizeof(size);
-        this->stream.pack_front(size);
+        this->stream.pack(0, size);
         this->stream.flushPack();
 
         return FileLocation(pos, size);
     }
 
-    template<class T>
-    FileLocation write(const FileLocation& loc, const T& value)
+    template<class T, class PackFunc>
+    FileLocation write(const FileLocation& loc, const T& value, PackFunc packFunc)
     {
         this->stream.resetPack();
-        value.pack(this->stream);
-        auto size = this->stream.getPackSize();
+        size_t size = 0;
+        this->stream.pack(size);
+        packFunc(value, this->stream);
+        size = this->stream.getPackSize();
         
         if (size <= loc.getMaxSize())
         {
             this->stream.seekp(loc.getAddr(), std::ios::beg);
             size += sizeof(size);
-            this->stream.pack_front(size);
+            this->stream.pack(0, size);
             this->stream.flushPack();
             return loc;
         }
@@ -57,15 +60,15 @@ public:
             this->stream.seekp(0, std::ios::end);
             auto pos = this->stream.tellp();
             size += sizeof(size);
-            this->stream.pack_front(size);
+            this->stream.pack(0, size);
             this->stream.flushPack();
 
             return FileLocation(pos, size);
         }
     }
 
-    template<class T>
-    void read(const FileLocation& loc, T& value)
+    template<class T, class UnpackFunc>
+    void read(const FileLocation& loc, T& value, UnpackFunc unpackFunc)
     {
         this->stream.seekg(loc.getAddr(), std::ios::beg);
         
@@ -75,7 +78,7 @@ public:
         this->stream.unpack(recSize);
         assert(recSize == loc.getMaxSize());
 
-        value.unpack(this->stream);
+        unpackFunc(value, this->stream);
         auto size = this->stream.getUnPackSize();
         if (size > 0)
         {

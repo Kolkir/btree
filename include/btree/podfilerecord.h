@@ -8,36 +8,18 @@
 namespace btree
 {
 
-template <class T, class Enable = void>
-class PODFileRecord
+template <class T>
+void PackPODFileRecord(const T& value, IOStream& stream)
 {
-    //Undefined
-};
+    stream.pack(value);
+}
 
 template <class T>
-class PODFileRecord<T, typename std::enable_if<std::is_pod<T>::value >::type>
+void UnPackPODFileRecord(T& value, IOStream& stream)
 {
-public:
-    PODFileRecord(T& val) : value(val)
-    {}
+    stream.unpack(value);
+}
 
-    void pack(IOStream& stream) const
-    {
-        stream.pack(value);
-    }
-
-    void unpack(IOStream& stream)
-    {
-        stream.unpack(value);
-    }
-
-private:
-    PODFileRecord(const PODFileRecord&);
-    PODFileRecord& operator=(const PODFileRecord&);
-
-private:
-    T& value;
-};
 
 }
 

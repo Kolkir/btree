@@ -2,7 +2,6 @@
 #define _FILE_LOCATION_H_
 
 #include <btree/importexport.h>
-#include <btree/stream.h>
 
 namespace btree
 {
@@ -14,17 +13,30 @@ class RecordFile;
 class BTREE_API FileLocation
 {
 public:
+    FileLocation()
+        : addr(0)
+        , maxSize(0)
+    {
+    }
+
     ~FileLocation(){};
+
+    size_t getMaxSize() const {return this->maxSize;}
+    RecAddr getAddr() const {return this->addr;}
 
 private:
     friend class RecordFile;
 
+    template <class T, class E>
+    friend class Pack;
+
+    template <class T, class E>
+    friend class UnPack;
+
     FileLocation(RecAddr addr, size_t size) : maxSize(size), addr(addr) {}
 
-    size_t getMaxSize() const {return this->maxSize;}
     void setMaxSize(size_t size){ this->maxSize = size;}
 
-    RecAddr getAddr() const {return this->addr;}
     void setAddr(RecAddr addr) { this->addr = addr;}
 
     friend bool operator== (const FileLocation& a, const FileLocation& b)

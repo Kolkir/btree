@@ -8,7 +8,7 @@ TEST_F(TreeTest, BTreeTest)
     A a;
     a.x = 123;
     a.y = 56.78;
-    auto loc1 = this->file->append(btree::PODFileRecord<A>(a));
+    auto loc1 = this->file->append(a, btree::PackPODFileRecord<A>);
 
     btree::BTree<std::string> tree(bTreeOrder);
     tree.create(indexFile);

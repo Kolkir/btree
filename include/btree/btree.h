@@ -90,7 +90,7 @@ template <class Key>
 typename BTree<Key>::NodePtr BTree<Key>::fetch(const FileLocation& loc)
 {
     NodePtr newNode(new Node());
-    this->file->read(loc, *newNode);
+    this->file->read(loc, *newNode, BTreeNodeUnPack<Key>);
     newNode->setFileLocation(loc);
     return newNode;
 }
