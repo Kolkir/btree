@@ -106,9 +106,10 @@ public:
         std::copy(reinterpret_cast<const char*>(&addr), 
                   reinterpret_cast<const char*>(&addr) + sizeof(addr),
                   iter);
+        
         auto size = value.getMaxSize();
-        std::copy(reinterpret_cast<const char*>(size), 
-                  reinterpret_cast<const char*>(size) + sizeof(addr),
+        std::copy(reinterpret_cast<const char*>(&size), 
+                  reinterpret_cast<const char*>(&size) + sizeof(size),
                   iter);
     }
 };
@@ -120,7 +121,7 @@ public:
     template <class Iter>
     Iter unpack(Iter start, FileLocation& value)
     {
-        RecAddr addr;
+        auto addr = value.getAddr();
 
         auto end = start;
         std::advance(end, sizeof(addr));
@@ -131,14 +132,14 @@ public:
 
         value.setAddr(addr);
 
-        size_t maxSize = 0;
+        auto maxSize = value.getMaxSize();
+
         start = end;
         std::advance(end, sizeof(maxSize));
 
-        auto size = value.getMaxSize();
         std::copy(start, 
                   end,
-                  reinterpret_cast<char*>(maxSize));
+                  reinterpret_cast<char*>(&maxSize));
 
         value.setMaxSize(maxSize);
         return end;

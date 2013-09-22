@@ -34,6 +34,7 @@ protected:
     virtual void TearDown() 
     {
         this->indexFile.close();
+        this->dataFile.close();
         std::remove(this->indexFileName.c_str());
         std::remove(this->fileName.c_str());
     }
