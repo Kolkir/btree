@@ -18,7 +18,8 @@ TEST_F(TreeTest, NodeTest1)
     btree::BTreeNode<std::string> node;
     node.insert("abc", loc1);
 
-    auto loc2 = node.search("abc");
+    btree::FileLocation loc2;
+    ASSERT_TRUE(node.search("abc", loc2));
     ASSERT_EQ(loc1, loc2);
 }
 
@@ -41,6 +42,7 @@ TEST_F(TreeTest, NodeTest2)
     btree::BTreeNode<std::string> node;
     file.read(*nodeLoaction, node, btree::BTreeNodeUnPack<std::string>);
     
-    auto loc2 = node.search("abc");
+    btree::FileLocation loc2;
+    ASSERT_TRUE(node.search("abc", loc2));
     ASSERT_EQ(loc1, loc2);
 }

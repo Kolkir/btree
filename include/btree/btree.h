@@ -77,13 +77,19 @@ private:
 template <class Key>
 typename BTree<Key>::NodePtr BTree<Key>::findLeafNode(Key key)
 {
+    this->nodes.clear();
+    this->nodes.push_back(this->root);
+
     size_t level = 0;
     for (; level < this->height; ++level)
     {
-        auto recLocation = this->nodes[level]->search(key);
-        this->nodes[level] = this->fetch(recLocation);
+        FileLocation recLocation;
+        if (this->nodes.back()->search(key, recLocation))
+        {
+            this->nodes.push_back(this->fetch(recLocation));
+        }
     }
-    return this->nodes[level];
+    return this->nodes.back();
 }
 
 template <class Key>

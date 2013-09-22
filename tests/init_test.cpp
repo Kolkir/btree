@@ -13,7 +13,7 @@ TEST_F(TreeTest, BTreeTest)
     btree::BTree<std::string> tree(bTreeOrder);
     tree.create(indexFile);
     tree.insert("Rec1", loc1);
-    auto val = tree.get("Hello");
+    auto val = tree.get("Rec1");
     ASSERT_TRUE(val != nullptr);
     ASSERT_EQ(loc1, *val);
 };

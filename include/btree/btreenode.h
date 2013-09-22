@@ -24,9 +24,18 @@ public:
         this->index.insert(std::make_pair(key, loc));
     }
 
-    FileLocation search(Key key)
+    bool search(Key key, FileLocation& loc)
     {
-        return this->index.at(key);
+        auto i = this->index.find(key);
+        if (i != this->index.end())
+        {
+            loc = i->second;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     void setFileLocation(const FileLocation& loc)
