@@ -26,7 +26,7 @@ public:
     {
         this->nodes.clear();
         this->file.reset(new RecordFile(stream));
-        this->root.reset(new Node());
+        this->root.reset(new Node(this->order));
         this->file->read_t(0, *this->root, maxLen);
         this->root.setMaxMemorySize(maxLen);
         this->nodes.push_back(root);
@@ -37,14 +37,48 @@ public:
     {
         this->nodes.clear();
         this->file.reset(new RecordFile(stream));
-        this->root.reset(new Node());
+        this->root.reset(new Node(this->order));
         this->height = 1;
         this->nodes.push_back(this->root);
     }
 
     void insert(Key key, const FileLocation& value)
     {
-        auto leafNode = this->findLeafNode(key);
+        auto thisNode = this->findLeafNode(key);
+        
+        bool newLargest = false;
+        Key prevKey;
+
+        // test for special case of new largest key in tree
+        if (key > thisNode->largestKey())
+        {
+            newLargest = true; 
+            prevKey = thisNode->largestKey();
+        }
+
+        bool overflow = thisNode->canInsert();
+
+        if (!overflow)
+        {
+            thisNode->insert(key, value);
+        }
+        
+        // handle special case of new largest key in tree
+       /* if (newLargest)
+        {
+            for (int i = 0; i < this->height; ++i) 
+            {
+                this->nodes[i]->updateKey(prevKey, key);
+                if (i > 0)
+                {
+                    this->store(this->nodes[i]);
+                }
+            }
+        }
+
+        if (overflow)
+        {
+        }*/
     }
 
     FileLocation* get(Key key) const
@@ -61,8 +95,30 @@ private:
     typedef BTreeNode<Key> Node;
     typedef std::shared_ptr<Node> NodePtr;
 
-    NodePtr findLeafNode(Key key); 
-    NodePtr fetch(const FileLocation& addr);
+    NodePtr findLeafNode(Key key)
+    {
+        this->nodes.clear();
+        this->nodes.push_back(this->root);
+
+        size_t level = 0;
+        for (; level < this->height; ++level)
+        {
+            FileLocation recLocation;
+            if (this->nodes.back()->search(key, recLocation))
+            {
+                this->nodes.push_back(this->fetch(recLocation));
+            }
+        }
+        return this->nodes.back();
+    }
+
+    NodePtr fetch(const FileLocation& loc)
+    {
+        NodePtr newNode(new Node(this->order));
+        this->file->read(loc, *newNode, BTreeNodeUnPack<Key>);
+        newNode->setFileLocation(loc);
+        return newNode;
+    }
 
 private:
     size_t order;
@@ -71,36 +127,6 @@ private:
     std::vector<NodePtr> nodes;
     std::unique_ptr<RecordFile> file;
 };
-
-//-----------------------------------------------------------------------------
-
-template <class Key>
-typename BTree<Key>::NodePtr BTree<Key>::findLeafNode(Key key)
-{
-    this->nodes.clear();
-    this->nodes.push_back(this->root);
-
-    size_t level = 0;
-    for (; level < this->height; ++level)
-    {
-        FileLocation recLocation;
-        if (this->nodes.back()->search(key, recLocation))
-        {
-            this->nodes.push_back(this->fetch(recLocation));
-        }
-    }
-    return this->nodes.back();
-}
-
-template <class Key>
-typename BTree<Key>::NodePtr BTree<Key>::fetch(const FileLocation& loc)
-{
-    NodePtr newNode(new Node());
-    this->file->read(loc, *newNode, BTreeNodeUnPack<Key>);
-    newNode->setFileLocation(loc);
-    return newNode;
-}
-
 
 }
 

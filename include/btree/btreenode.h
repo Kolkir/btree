@@ -16,8 +16,17 @@ template<class Key>
 class BTreeNode
 {
 public:
-    BTreeNode(){};
+
+    BTreeNode(size_t maxKeysCount)
+        : maxKeysCount(maxKeysCount)
+    {};
+
     ~BTreeNode(){};
+
+    bool canInsert() const
+    {
+        return this->index.size() < this->maxKeysCount;
+    }
 
     void insert(Key key, const FileLocation& loc)
     {
@@ -35,6 +44,18 @@ public:
         else
         {
             return false;
+        }
+    }
+
+    Key largestKey() const
+    {
+        if (this->index.empty())
+        {
+            return Key();
+        }
+        else
+        {
+            return this->index.rbegin()->first;
         }
     }
 
@@ -85,6 +106,7 @@ private:
     BTreeNode& operator= (const BTreeNode&);
 
 private:
+    size_t maxKeysCount;
     typedef std::map<Key, FileLocation> MapIndex;
     MapIndex index;
     std::unique_ptr<FileLocation> fileLocation;
