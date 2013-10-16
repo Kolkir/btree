@@ -66,7 +66,7 @@ public:
         // handle special case of new largest key in tree
         if (newLargest)
         {
-            for (int i = 0; i < this->height; ++i) 
+            for (size_t i = 0; i < this->height; ++i) 
             {
                 this->nodes[i]->updateKey(prevKey, key);
                 if (i > 0)
@@ -79,7 +79,7 @@ public:
         int level = this->height - 1; 
         while (overflow)
         {
-            //remember the largest key
+  /*          //remember the largest key
             largestKey=thisNode->LargestKey();
             // split the node
             newNode = NewNode();
@@ -93,7 +93,7 @@ public:
             (largestKey,thisNode->LargestKey());
             result = parentNode->Insert
             (newNode->LargestKey(),newNode->RecAddr);
-            thisNode=parentNode;
+            thisNode=parentNode;*/
         }
         this->store(*thisNode);
     }
