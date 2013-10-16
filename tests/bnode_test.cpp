@@ -30,23 +30,34 @@ TEST_F(TreeTest, NodeTest2)
     a.y = 56.78;
     auto loc1 = this->file->append(a, btree::PackPODFileRecord<A>);
     auto loc2 = this->file->append(a, btree::PackPODFileRecord<A>);
+    auto loc3 = this->file->append(a, btree::PackPODFileRecord<A>);
+    auto loc4 = this->file->append(a, btree::PackPODFileRecord<A>);
     std::unique_ptr<btree::FileLocation> nodeLoaction;
     {
         btree::RecordFile file(indexFile);
-        btree::BTreeNode<std::string> node(2);
+        btree::BTreeNode<std::string> node(bTreeOrder);
         ASSERT_TRUE(node.canInsert());
         node.insert("abc", loc1);
         ASSERT_TRUE(node.canInsert());
         node.insert("abcd", loc2);
+        ASSERT_TRUE(node.canInsert());
+        node.insert("abcde", loc3);
+        ASSERT_TRUE(node.canInsert());
+        node.insert("abcdef", loc4);
+
         ASSERT_FALSE(node.canInsert());
+        node.remove("abcdef", loc4);
+        ASSERT_TRUE(node.canInsert());
+
         nodeLoaction.reset(new btree::FileLocation(file.append(node, btree::BTreeNodePack<std::string>)));
         indexFile.flush();
     }
     ASSERT_TRUE(nodeLoaction);
     btree::RecordFile file(indexFile);
-    btree::BTreeNode<std::string> node(2);
+    btree::BTreeNode<std::string> node;
     file.read(*nodeLoaction, node, btree::BTreeNodeUnPack<std::string>);
     
+    ASSERT_TRUE(node.canInsert());
     ASSERT_TRUE(node.search("abc", loc2));
     ASSERT_EQ(loc1, loc2);
 }

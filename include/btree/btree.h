@@ -64,21 +64,38 @@ public:
         }
         
         // handle special case of new largest key in tree
-       /* if (newLargest)
+        if (newLargest)
         {
             for (int i = 0; i < this->height; ++i) 
             {
                 this->nodes[i]->updateKey(prevKey, key);
                 if (i > 0)
                 {
-                    this->store(this->nodes[i]);
+                    this->store(*this->nodes[i]);
                 }
             }
         }
 
-        if (overflow)
+        int level = this->height - 1; 
+        while (overflow)
         {
-        }*/
+            //remember the largest key
+            largestKey=thisNode->LargestKey();
+            // split the node
+            newNode = NewNode();
+            thisNode->Split(newNode);
+            Store(thisNode); Store(newNode);
+            level--; // go up to parent level
+            if (level < 0) break;
+            // insert newNode into parent of thisNode
+            parentNode = Nodes[level];
+            result = parentNode->UpdateKey
+            (largestKey,thisNode->LargestKey());
+            result = parentNode->Insert
+            (newNode->LargestKey(),newNode->RecAddr);
+            thisNode=parentNode;
+        }
+        this->store(*thisNode);
     }
 
     FileLocation* get(Key key) const
@@ -118,6 +135,12 @@ private:
         this->file->read(loc, *newNode, BTreeNodeUnPack<Key>);
         newNode->setFileLocation(loc);
         return newNode;
+    }
+
+    void store(const BTreeNode<Key>& node)
+    {
+        assert(node.getFileLocation() != nullptr);
+        this->file->write(*node.getFileLocation(), node, BTreeNodePack<Key>);
     }
 
 private:

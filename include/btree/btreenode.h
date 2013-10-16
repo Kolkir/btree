@@ -17,6 +17,11 @@ class BTreeNode
 {
 public:
 
+    //needed for reading
+    BTreeNode()
+        : maxKeysCount(0)
+    {};
+
     BTreeNode(size_t maxKeysCount)
         : maxKeysCount(maxKeysCount)
     {};
@@ -31,6 +36,26 @@ public:
     void insert(Key key, const FileLocation& loc)
     {
         this->index.insert(std::make_pair(key, loc));
+    }
+
+    void updateKey(Key oldKey, Key newKey)
+    {
+        FileLocation loc;
+        if (this->search(oldKey, loc))
+        {
+            this->remove(oldKey, loc);
+            this->insert(newKey, loc);
+        }
+    }
+
+    void remove(Key key, FileLocation& loc)
+    {
+        auto i = this->index.find(key);
+        if (i != this->index.end())
+        {
+            loc = i->second;
+            this->index.erase(i);
+        }
     }
 
     bool search(Key key, FileLocation& loc)
@@ -72,6 +97,8 @@ public:
     template<class Key>
     friend void BTreeNodePack(const BTreeNode<Key>& node, IOStream& stream)
     {
+        stream.pack(node.maxKeysCount);
+
         stream.pack(node.index.size());
 
         std::for_each(node.index.begin(), node.index.end(),
@@ -85,6 +112,8 @@ public:
     template<class Key>
     friend void BTreeNodeUnPack(BTreeNode<Key>& node, IOStream& stream)
     {
+        stream.unpack(node.maxKeysCount);
+
         size_t indexCount = 0;
         stream.unpack(indexCount);
 
