@@ -17,4 +17,9 @@ add_library(gtest STATIC "${PROJECT_SOURCE_DIR}/3rdparty/gtest/src/gtest-all.cc"
 add_executable(btree_tests ${TESTS_SOURCES})
 set_target_properties(btree_tests PROPERTIES COMPILE_FLAGS "-DBTREE_USE_DLL -D_SCL_SECURE_NO_WARNINGS")
 
+add_custom_command(TARGET btree_tests
+                    POST_BUILD
+                    COMMAND btree_tests
+                    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+
 target_link_libraries (btree_tests gtest btree)

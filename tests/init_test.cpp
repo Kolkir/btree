@@ -2,7 +2,7 @@
 #include <btree/podfilerecord.h>
 #include "treetestfix.h"
 
-
+/*
 TEST_F(TreeTest, BTreeTest)
 {
     A a;
@@ -18,4 +18,4 @@ TEST_F(TreeTest, BTreeTest)
     ASSERT_EQ(loc1, *val);
 };
 
-
+*/
