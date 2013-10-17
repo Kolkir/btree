@@ -125,11 +125,17 @@ private:
     std::iostream& stream;
     std::ios::iostate prevState;
 
+#ifdef WIN32
     #pragma warning( push )
     #pragma warning( disable : 4251 )
+#endif
+    
     std::vector<char> packBuffer;
     std::vector<char>::iterator unPackIterator;
+    
+#ifdef WIN32    
     #pragma warning( pop )
+#endif    
 };
 
 }

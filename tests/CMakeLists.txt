@@ -15,7 +15,10 @@ set(TESTS_SOURCES
 add_library(gtest STATIC "${PROJECT_SOURCE_DIR}/3rdparty/gtest/src/gtest-all.cc")
 
 add_executable(btree_tests ${TESTS_SOURCES})
-set_target_properties(btree_tests PROPERTIES COMPILE_FLAGS "-DBTREE_USE_DLL -D_SCL_SECURE_NO_WARNINGS")
+
+IF(WIN32)
+    set_target_properties(btree_tests PROPERTIES COMPILE_FLAGS "-DBTREE_USE_DLL -D_SCL_SECURE_NO_WARNINGS")
+ENDIF(WIN32)
 
 add_custom_command(TARGET btree_tests
                     POST_BUILD

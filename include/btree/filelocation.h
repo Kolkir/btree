@@ -2,6 +2,7 @@
 #define _FILE_LOCATION_H_
 
 #include <btree/importexport.h>
+#include <cstddef>
 
 namespace btree
 {
@@ -14,8 +15,8 @@ class BTREE_API FileLocation
 {
 public:
     FileLocation()
-        : addr(0)
-        , maxSize(0)
+        : maxSize(0)
+        , addr(0)
     {
     }
 
