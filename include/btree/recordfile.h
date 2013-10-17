@@ -42,7 +42,7 @@ public:
     {
         this->stream.resetPack();
         size_t size = 0;
-        this->stream.pack(size);
+        this->stream.pack(size); // wite fake value to calculate real size
         packFunc(value, this->stream);
         size = this->stream.getPackSize();
         
@@ -50,7 +50,7 @@ public:
         {
             this->stream.seekp(loc.getAddr(), std::ios::beg);
             size += sizeof(size);
-            this->stream.pack(0, size);
+            this->stream.pack(0, size); //owerwite with real record size
             this->stream.flushPack();
             return loc;
         }
@@ -60,7 +60,7 @@ public:
             this->stream.seekp(0, std::ios::end);
             auto pos = this->stream.tellp();
             size += sizeof(size);
-            this->stream.pack(0, size);
+            this->stream.pack(0, size);  //owerwite with real record size
             this->stream.flushPack();
 
             return FileLocation(pos, size);
@@ -76,7 +76,7 @@ public:
         
         size_t recSize = 0;
         this->stream.unpack(recSize);
-        assert(recSize == loc.getMaxSize());
+        assert(recSize <= loc.getMaxSize());
 
         unpackFunc(value, this->stream);
         auto size = this->stream.getUnPackSize();
