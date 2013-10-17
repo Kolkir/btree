@@ -22,7 +22,7 @@ class UnPack
 };
 
 template <class T>
-class Pack<T, typename std::enable_if<std::is_pod<typename T>::value>::type>
+class Pack<T, typename std::enable_if<std::is_pod<T>::value>::type>
 {
 public:
     template <class Iter>
@@ -35,7 +35,7 @@ public:
 };
 
 template <class T>
-class UnPack<T, typename std::enable_if<std::is_pod<typename T>::value>::type>
+class UnPack<T, typename std::enable_if<std::is_pod<T>::value>::type>
 {
 public:
     template <class Iter>

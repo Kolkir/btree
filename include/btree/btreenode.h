@@ -94,41 +94,13 @@ public:
         return this->fileLocation.get();
     }
 
-    template<class Key>
-    friend void BTreeNodePack(const BTreeNode<Key>& node, IOStream& stream)
-    {
-        stream.pack(node.maxKeysCount);
+    template<class TKey>
+    friend void BTreeNodePack(const BTreeNode<TKey>& node, IOStream& stream);
+    
 
-        stream.pack(node.index.size());
-
-        std::for_each(node.index.begin(), node.index.end(),
-            [&](const MapIndex::value_type& value)
-        {
-            stream.pack(value.first);
-            stream.pack(value.second);
-        });
-    }
-
-    template<class Key>
-    friend void BTreeNodeUnPack(BTreeNode<Key>& node, IOStream& stream)
-    {
-        stream.unpack(node.maxKeysCount);
-
-        size_t indexCount = 0;
-        stream.unpack(indexCount);
-
-        Key key;
-        FileLocation loc;
-
-        node.index.clear();
-        
-        for (size_t i = 0; i < indexCount; ++i)
-        {
-            stream.unpack(key);
-            stream.unpack(loc);
-            node.index.insert(std::make_pair(key, loc));
-        }
-    }
+    template<class TKey>
+    friend void BTreeNodeUnPack(BTreeNode<TKey>& node, IOStream& stream);
+    
 
 private:
     BTreeNode(const BTreeNode&);
@@ -140,6 +112,43 @@ private:
     MapIndex index;
     std::unique_ptr<FileLocation> fileLocation;
 };
+
+template<class TKey>
+inline void BTreeNodePack(const BTreeNode<TKey>& node, IOStream& stream)
+{
+    stream.pack(node.maxKeysCount);
+
+    stream.pack(node.index.size());
+
+    std::for_each(node.index.begin(), node.index.end(),
+        [&](const typename BTreeNode<TKey>::MapIndex::value_type& value)
+    {
+        stream.pack(value.first);
+        stream.pack(value.second);
+    });
+}
+
+template<class TKey>
+inline void BTreeNodeUnPack(BTreeNode<TKey>& node, IOStream& stream)
+{
+    stream.unpack(node.maxKeysCount);
+
+    size_t indexCount = 0;
+    stream.unpack(indexCount);
+
+    TKey key;
+    FileLocation loc;
+
+    node.index.clear();
+    
+    for (size_t i = 0; i < indexCount; ++i)
+    {
+        stream.unpack(key);
+        stream.unpack(loc);
+        node.index.insert(std::make_pair(key, loc));
+    }
+}
+
 
 }
 

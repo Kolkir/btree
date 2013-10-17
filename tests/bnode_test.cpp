@@ -52,7 +52,7 @@ TEST_F(TreeTest, NodeTest2)
         nodeLoaction.reset(new btree::FileLocation(file.append(node, btree::BTreeNodePack<std::string>)));
         indexFile.flush();
     }
-    ASSERT_TRUE(nodeLoaction);
+    ASSERT_TRUE(nodeLoaction.get() != nullptr);
     btree::RecordFile file(indexFile);
     btree::BTreeNode<std::string> node;
     file.read(*nodeLoaction, node, btree::BTreeNodeUnPack<std::string>);

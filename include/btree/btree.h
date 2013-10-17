@@ -27,8 +27,8 @@ public:
         this->nodes.clear();
         this->file.reset(new RecordFile(stream));
         this->root.reset(new Node(this->order));
-        this->file->read_t(0, *this->root, maxLen);
-        this->root.setMaxMemorySize(maxLen);
+        FileLocation firstLocation;
+        this->file->read(firstLocation, *this->root, BTreeNodeUnPack<Key>);
         this->nodes.push_back(root);
         this->calcHeight();
     }

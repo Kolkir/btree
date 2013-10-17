@@ -23,9 +23,9 @@ protected:
             std::ofstream f(this->indexFileName);
             std::ofstream f2(this->fileName);
         }
-        this->indexFile = std::fstream(this->indexFileName, std::ios::in | std::ios::out | std::ios::binary);
+        this->indexFile.open(this->indexFileName, std::ios::in | std::ios::out | std::ios::binary);
         ASSERT_TRUE(indexFile.good());
-        this->dataFile = std::fstream(this->fileName, std::ios::in | std::ios::out | std::ios::binary);
+        this->dataFile.open(this->fileName, std::ios::in | std::ios::out | std::ios::binary);
         ASSERT_TRUE(dataFile.good());
 
         this->file.reset(new btree::RecordFile(this->dataFile));
