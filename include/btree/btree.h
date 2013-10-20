@@ -63,13 +63,9 @@ public:
             prevKey = thisNode->largestKey();
         }
 
+        thisNode->insert(key, value);
         bool overflow = !thisNode->canInsert();
 
-        if (!overflow)
-        {
-            thisNode->insert(key, value);
-        }
-        
         // handle special case of new largest key in tree
         if (newLargest)
         {
@@ -83,26 +79,47 @@ public:
             }
         }
 
+        decltype(this->root) newNode;
+        Key largestKey;
         int level = this->height - 1; 
         while (overflow)
         {
-  /*          //remember the largest key
-            largestKey=thisNode->LargestKey();
+            //remember the largest key
+            largestKey = thisNode->largestKey();
             // split the node
-            newNode = NewNode();
-            thisNode->Split(newNode);
-            Store(thisNode); Store(newNode);
-            level--; // go up to parent level
-            if (level < 0) break;
+            newNode = this->newNode();
+            thisNode->split(*newNode);
+            this->store(*thisNode); 
+            this->store(*newNode);
+            --level; // go up to parent level
+            if (level < 0)
+            {
+                break;
+            }
             // insert newNode into parent of thisNode
-            parentNode = Nodes[level];
-            result = parentNode->UpdateKey
-            (largestKey,thisNode->LargestKey());
-            result = parentNode->Insert
-            (newNode->LargestKey(),newNode->RecAddr);
-            thisNode=parentNode;*/
+            auto parentNode = this->nodes[level];
+            parentNode->updateKey(largestKey, thisNode->largestKey());
+
+            parentNode->insert(newNode->largestKey(), *newNode->getFileLocation());
+            overflow = !parentNode->canInsert();
+
+            thisNode = parentNode;
         }
         this->store(*thisNode);
+        
+        if (level >= 0)
+        {
+            return;// insert complete
+        }
+
+        // else we just split the root
+        auto loc = this->file->append(*this->root, BTreeNodePack<Key, maxKeySize, KeyPackFunc>); // put previous root into file
+
+        // insert 2 keys in new root node
+        this->root->insert(thisNode->largestKey(), loc);
+        this->root->insert(newNode->largestKey(), *newNode->getFileLocation());
+
+        ++this->height;
     }
 
     bool get(Key key, FileLocation& loc)
@@ -120,6 +137,14 @@ private:
 private:
     typedef BTreeNode<Key> Node;
     typedef std::shared_ptr<Node> NodePtr;
+
+    NodePtr newNode() const
+    {
+        NodePtr newNode(new Node(this->order));
+        auto loc = this->file->append(*newNode, BTreeNodePack<Key, maxKeySize, KeyPackFunc>);
+        newNode->setFileLocation(loc);
+        return newNode;
+    }
 
     NodePtr findLeafNode(Key key)
     {

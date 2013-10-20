@@ -38,6 +38,11 @@ public:
         this->index.insert(std::make_pair(key, loc));
     }
 
+    void split(BTreeNode& newNode)
+    {
+        //TODO: half split
+    }
+
     void updateKey(Key oldKey, Key newKey)
     {
         FileLocation loc;

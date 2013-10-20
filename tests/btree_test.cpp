@@ -21,3 +21,22 @@ TEST_F(TreeTest, InsertGet)
     ASSERT_EQ(loc1, loc2);
 };
 
+
+TEST_F(TreeTest, CreateStructure)
+{
+    btree::BTree<char> tree(bTreeOrder);
+    tree.create(indexFile);
+
+    std::string keys = "CSDTAMPIBWNGURKEHOLJYQZFXV";
+    int index = 0;
+
+    auto i = keys.begin();
+    auto e = keys.end();
+    for (; i != e; ++i, ++index)
+    {
+        auto loc = this->file->append(index, btree::PackPODFileRecord<int>);
+        tree.insert(*i, loc);
+    }
+};
+
+
