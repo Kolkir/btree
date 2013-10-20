@@ -1,6 +1,7 @@
 #include "treetestfix.h"
 
 #include <btree/btreenode.h>
+#include <btree/keypack.h>
 #include <btree/podfilerecord.h>
 #include <gtest/gtest.h>
 
@@ -14,7 +15,6 @@ TEST_F(TreeTest, NodeTest1)
     a.y = 56.78;
     auto loc1 = this->file->append(a, btree::PackPODFileRecord<A>);
 
-    btree::RecordFile file(indexFile);
     btree::BTreeNode<std::string> node(2);
     node.insert("abc", loc1);
 
@@ -49,13 +49,13 @@ TEST_F(TreeTest, NodeTest2)
         node.remove("abcdef", loc4);
         ASSERT_TRUE(node.canInsert());
 
-        nodeLoaction.reset(new btree::FileLocation(file.append(node, btree::BTreeNodePack<std::string>)));
+        nodeLoaction.reset(new btree::FileLocation(file.append(node, btree::BTreeNodePack<std::string, 100, btree::KeyPack<std::string> >)));
         indexFile.flush();
     }
     ASSERT_TRUE(nodeLoaction.get() != nullptr);
     btree::RecordFile file(indexFile);
     btree::BTreeNode<std::string> node;
-    file.read(*nodeLoaction, node, btree::BTreeNodeUnPack<std::string>);
+    file.read(*nodeLoaction, node, btree::BTreeNodeUnPack<std::string, 100, btree::KeyUnPack<std::string> >);
     
     ASSERT_TRUE(node.canInsert());
     ASSERT_TRUE(node.search("abc", loc2));

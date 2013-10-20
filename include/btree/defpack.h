@@ -2,6 +2,7 @@
 #define _DEF_PACK_H_
 
 #include <btree/filelocation.h>
+#include <btree/stream.h>
 
 #include <iterator>
 #include <type_traits>
@@ -26,7 +27,7 @@ class Pack<T, typename std::enable_if<std::is_pod<T>::value>::type>
 {
 public:
     template <class Iter>
-    void pack(Iter iter, const T& value)
+    void operator()(Iter iter, const T& value)
     {
         std::copy(reinterpret_cast<const char*>(&value), 
                   reinterpret_cast<const char*>(&value) + sizeof(T),
@@ -39,7 +40,7 @@ class UnPack<T, typename std::enable_if<std::is_pod<T>::value>::type>
 {
 public:
     template <class Iter>
-    Iter unpack(Iter start, T& value)
+    Iter operator()(Iter start, T& value)
     {
         Iter end = start;
         std::advance(end, sizeof(T));
@@ -56,7 +57,7 @@ class Pack<std::string, void>
 {
 public:
     template <class Iter>
-    void pack(Iter iter, const std::string& value)
+    void operator()(Iter iter, const std::string& value)
     {
         auto len = value.length();
         std::copy(reinterpret_cast<const char*>(&len), 
@@ -73,7 +74,7 @@ class UnPack<std::string, void>
 {
 public:
     template <class Iter>
-    Iter unpack(Iter start, std::string& value)
+    Iter operator()(Iter start, std::string& value)
     {
         auto len = value.length();
 
@@ -100,7 +101,7 @@ class Pack<FileLocation, void>
 {
 public:
     template <class Iter>
-    void pack(Iter iter, const FileLocation& value)
+    void operator()(Iter iter, const FileLocation& value)
     {
         auto addr = value.getAddr();
         std::copy(reinterpret_cast<const char*>(&addr), 
@@ -119,7 +120,7 @@ class UnPack<FileLocation, void>
 {
 public:
     template <class Iter>
-    Iter unpack(Iter start, FileLocation& value)
+    Iter operator()(Iter start, FileLocation& value)
     {
         auto addr = value.getAddr();
 

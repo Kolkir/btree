@@ -12,9 +12,11 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 include_directories("${PROJECT_SOURCE_DIR}/include/")
 
 set(BTREE_HEADERS
+    include/btree/exceptions.h
     include/btree/btree.h
     include/btree/btreenode.h
     include/btree/defpack.h
+    include/btree/keypack.h
     include/btree/filelocation.h
     include/btree/importexport.h
     include/btree/podfilerecord.h

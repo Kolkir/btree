@@ -44,6 +44,11 @@ private:
     {
         return a.addr == b.addr && a.maxSize == b.maxSize;
     }
+
+    friend bool operator!= (const FileLocation& a, const FileLocation& b)
+    {
+        return !(a == b);
+    }
 private:
     size_t maxSize;
     RecAddr addr;

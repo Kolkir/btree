@@ -72,6 +72,20 @@ public:
         }
     }
 
+    void searchInexact(Key key, FileLocation& loc)
+    {
+        assert(!this->index.empty());
+        auto i = this->index.upper_bound(key);
+        if (i != this->index.end())
+        {
+            loc = i->second;
+        }
+        else
+        {
+            loc = this->index.rbegin()->second;
+        }
+    }
+
     Key largestKey() const
     {
         if (this->index.empty())
@@ -94,11 +108,11 @@ public:
         return this->fileLocation.get();
     }
 
-    template<class TKey>
+    template <class TKey, size_t maxKeySize, class KeyPackFunc>
     friend void BTreeNodePack(const BTreeNode<TKey>& node, IOStream& stream);
     
 
-    template<class TKey>
+    template<class TKey, size_t keyMaxSize, class KeyUnPackFunc>
     friend void BTreeNodeUnPack(BTreeNode<TKey>& node, IOStream& stream);
     
 
@@ -113,7 +127,7 @@ private:
     std::unique_ptr<FileLocation> fileLocation;
 };
 
-template<class TKey>
+template<class TKey, size_t keyMaxSize, class TKeyPackFunc>
 inline void BTreeNodePack(const BTreeNode<TKey>& node, IOStream& stream)
 {
     stream.pack(node.maxKeysCount);
@@ -123,12 +137,25 @@ inline void BTreeNodePack(const BTreeNode<TKey>& node, IOStream& stream)
     std::for_each(node.index.begin(), node.index.end(),
         [&](const typename BTreeNode<TKey>::MapIndex::value_type& value)
     {
-        stream.pack(value.first);
+        TKeyPackFunc pack;
+        pack(value.first, stream, keyMaxSize);
         stream.pack(value.second);
     });
+
+    //store all posible set to reserve location
+    auto leftCount = node.maxKeysCount - node.index.size();
+    TKey key;
+    FileLocation loc;
+
+    for (size_t i = 0; i < leftCount; ++i)
+    {
+        TKeyPackFunc pack;
+        pack(key, stream, keyMaxSize);
+        stream.pack(loc);
+    }
 }
 
-template<class TKey>
+template<class TKey, size_t keyMaxSize, class TKeyPackUnFunc>
 inline void BTreeNodeUnPack(BTreeNode<TKey>& node, IOStream& stream)
 {
     stream.unpack(node.maxKeysCount);
@@ -143,7 +170,8 @@ inline void BTreeNodeUnPack(BTreeNode<TKey>& node, IOStream& stream)
     
     for (size_t i = 0; i < indexCount; ++i)
     {
-        stream.unpack(key);
+        TKeyPackUnFunc unpack;
+        unpack(key, stream, keyMaxSize);
         stream.unpack(loc);
         node.index.insert(std::make_pair(key, loc));
     }

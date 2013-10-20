@@ -1,8 +1,9 @@
 #include <btree/btree.h>
 #include <btree/podfilerecord.h>
+
 #include "treetestfix.h"
 
-/*
+
 TEST_F(TreeTest, BTreeTest)
 {
     A a;
@@ -10,7 +11,7 @@ TEST_F(TreeTest, BTreeTest)
     a.y = 56.78;
     auto loc1 = this->file->append(a, btree::PackPODFileRecord<A>);
 
-    btree::BTree<std::string> tree(bTreeOrder);
+    btree::BTree<std::string, 100> tree(bTreeOrder);
     tree.create(indexFile);
     tree.insert("Rec1", loc1);
     auto val = tree.get("Rec1");
@@ -18,4 +19,3 @@ TEST_F(TreeTest, BTreeTest)
     ASSERT_EQ(loc1, *val);
 };
 
-*/

@@ -4,6 +4,7 @@
 #include <btree/importexport.h>
 #include <btree/btreenode.h>
 #include <btree/recordfile.h>
+#include <btree/keypack.h>
 
 #include <iostream>
 #include <memory>
@@ -12,7 +13,10 @@
 namespace btree
 {
 
-template <class Key>
+template <class Key,
+          size_t maxKeySize = sizeof(Key),
+          class KeyPackFunc = KeyPack<Key>,
+          class KeyUnPackFunc = KeyUnPack<Key>>
 class BTree
 {
 public:
@@ -28,7 +32,8 @@ public:
         this->file.reset(new RecordFile(stream));
         this->root.reset(new Node(this->order));
         FileLocation firstLocation;
-        this->file->read(firstLocation, *this->root, BTreeNodeUnPack<Key>);
+        this->file->read(firstLocation, *this->root, BTreeNodeUnPack<Key, maxKeySize, KeyUnPackFunc>);
+        this->root->setFileLocation(firstLocation);
         this->nodes.push_back(root);
         this->calcHeight();
     }
@@ -38,6 +43,8 @@ public:
         this->nodes.clear();
         this->file.reset(new RecordFile(stream));
         this->root.reset(new Node(this->order));
+        auto loc = this->file->append(*this->root, BTreeNodePack<Key, maxKeySize, KeyPackFunc>);
+        this->root->setFileLocation(loc);
         this->height = 1;
         this->nodes.push_back(this->root);
     }
@@ -56,7 +63,7 @@ public:
             prevKey = thisNode->largestKey();
         }
 
-        bool overflow = thisNode->canInsert();
+        bool overflow = !thisNode->canInsert();
 
         if (!overflow)
         {
@@ -117,14 +124,12 @@ private:
         this->nodes.clear();
         this->nodes.push_back(this->root);
 
-        size_t level = 0;
-        for (; level < this->height; ++level)
+        // start from second level to handle empty first level situation
+        for (size_t level = 1; level < this->height; ++level)
         {
             FileLocation recLocation;
-            if (this->nodes.back()->search(key, recLocation))
-            {
-                this->nodes.push_back(this->fetch(recLocation));
-            }
+            this->nodes.back()->searchInexact(key, recLocation);
+            this->nodes.push_back(this->fetch(recLocation));
         }
         return this->nodes.back();
     }
@@ -132,7 +137,7 @@ private:
     NodePtr fetch(const FileLocation& loc)
     {
         NodePtr newNode(new Node(this->order));
-        this->file->read(loc, *newNode, BTreeNodeUnPack<Key>);
+        this->file->read(loc, *newNode, BTreeNodeUnPack<Key, maxKeySize, KeyUnPackFunc>);
         newNode->setFileLocation(loc);
         return newNode;
     }
@@ -140,7 +145,11 @@ private:
     void store(const BTreeNode<Key>& node)
     {
         assert(node.getFileLocation() != nullptr);
-        this->file->write(*node.getFileLocation(), node, BTreeNodePack<Key>);
+        auto newLoc = this->file->write(*node.getFileLocation(), node, BTreeNodePack<Key, maxKeySize, KeyPackFunc>);
+        if (newLoc != *node.getFileLocation())
+        {
+            throw IndexLocationChanged("Can't store a node");
+        }
     }
 
 private:

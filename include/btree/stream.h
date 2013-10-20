@@ -54,7 +54,7 @@ public:
     void pack(const T& value)
     {
         Pack<T> pack;
-        pack.pack(std::back_inserter(this->packBuffer), value);
+        pack(std::back_inserter(this->packBuffer), value);
     }
 
     template<class T>
@@ -66,7 +66,7 @@ public:
             auto iter = this->packBuffer.begin();
             std::advance(iter, offset);
             Pack<T> pack;
-            pack.pack(iter, value);
+            pack(iter, value);
         }
     }
 
@@ -87,7 +87,7 @@ public:
     void unpack(T& value)
     {
         UnPack<T> unpack;
-        this->unPackIterator = unpack.unpack(this->unPackIterator, value);
+        this->unPackIterator = unpack(this->unPackIterator, value);
     }
 
     template<class T>
