@@ -13,7 +13,7 @@ include_directories("${PROJECT_SOURCE_DIR}/3rdparty/gtest/")
 set(TESTS_SOURCES
     main.cpp
     bnode_test.cpp
-    init_test.cpp
+    btree_test.cpp
     recfile_test.cpp)    
 
 add_library(gtest STATIC "${PROJECT_SOURCE_DIR}/3rdparty/gtest/src/gtest-all.cc")

@@ -4,7 +4,7 @@
 #include "treetestfix.h"
 
 
-TEST_F(TreeTest, BTreeTest)
+TEST_F(TreeTest, InsertGet)
 {
     A a;
     a.x = 123;
@@ -14,8 +14,10 @@ TEST_F(TreeTest, BTreeTest)
     btree::BTree<std::string, 100> tree(bTreeOrder);
     tree.create(indexFile);
     tree.insert("Rec1", loc1);
-    auto val = tree.get("Rec1");
-    ASSERT_TRUE(val != nullptr);
-    ASSERT_EQ(loc1, *val);
+
+    btree::FileLocation loc2;
+    auto val = tree.get("Rec1", loc2);
+    ASSERT_TRUE(val);
+    ASSERT_EQ(loc1, loc2);
 };
 

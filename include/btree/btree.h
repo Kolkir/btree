@@ -105,9 +105,11 @@ public:
         this->store(*thisNode);
     }
 
-    FileLocation* get(Key key) const
+    bool get(Key key, FileLocation& loc)
     {
-        return nullptr;
+        NodePtr node = this->findLeafNode(key);
+        assert(node.get() != nullptr);
+        return node->search(key, loc);
     }
 
 private:
