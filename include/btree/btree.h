@@ -69,7 +69,7 @@ public:
         // handle special case of new largest key in tree
         if (newLargest)
         {
-            for (size_t i = 0; i < this->height; ++i) 
+            for (size_t i = 0; i < this->height - 1; ++i) 
             {
                 this->nodes[i]->updateKey(prevKey, key);
                 if (i > 0)
@@ -116,6 +116,7 @@ public:
         auto loc = this->file->append(*this->root, BTreeNodePack<Key, maxKeySize, KeyPackFunc>); // put previous root into file
 
         // insert 2 keys in new root node
+        this->root->clear();
         this->root->insert(thisNode->largestKey(), loc);
         this->root->insert(newNode->largestKey(), *newNode->getFileLocation());
 

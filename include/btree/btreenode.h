@@ -23,10 +23,15 @@ public:
     {};
 
     BTreeNode(size_t maxKeysCount)
-        : maxKeysCount(maxKeysCount)
+        : maxKeysCount(maxKeysCount + 1)
     {};
 
     ~BTreeNode(){};
+
+    void clear()
+    {
+        this->index.clear();
+    }
 
     bool canInsert() const
     {
@@ -40,7 +45,18 @@ public:
 
     void split(BTreeNode& newNode)
     {
-        //TODO: half split
+        auto midpt = (this->index.size() + 1) / 2;
+        
+        auto i = this->index.begin();
+        std::advance(i, midpt);
+        auto s = i;
+        auto e = this->index.end();
+
+        for (; i != e; ++i)
+        {
+            newNode.insert(i->first, i->second);
+        }
+        this->index.erase(s, e);
     }
 
     void updateKey(Key oldKey, Key newKey)
