@@ -11,12 +11,15 @@ include_directories("${PROJECT_SOURCE_DIR}/3rdparty/gtest/include/")
 include_directories("${PROJECT_SOURCE_DIR}/3rdparty/gtest/")
 
 set(TESTS_SOURCES
-    main.cpp
     bnode_test.cpp
     btree_test.cpp
     recfile_test.cpp)    
 
-add_library(gtest STATIC "${PROJECT_SOURCE_DIR}/3rdparty/gtest/src/gtest-all.cc")
+set(GTEST_SOURCES
+    "${PROJECT_SOURCE_DIR}/3rdparty/gtest/src/gtest-all.cc"
+    "${PROJECT_SOURCE_DIR}/3rdparty/gtest/src/gtest-main.cc")
+    
+add_library(gtest STATIC ${GTEST_SOURCES})
 
 add_executable(tests ${TESTS_SOURCES})
 

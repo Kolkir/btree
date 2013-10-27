@@ -15,9 +15,11 @@ namespace btree
 class BTREE_API RecordFile
 {
 public:
-    RecordFile(std::iostream& stream);
+    RecordFile(std::iostream& stream)
+    : stream(stream)
+    {}
 
-    ~RecordFile();
+    ~RecordFile(){}
 
     template<class T, class PackFunc>
     FileLocation append(const T& value, PackFunc packFunc)
