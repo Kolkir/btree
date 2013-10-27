@@ -33,9 +33,9 @@ public:
         this->index.clear();
     }
 
-    bool canInsert() const
+    bool isOverflow() const
     {
-        return this->index.size() < this->maxKeysCount;
+        return this->index.size() >= this->maxKeysCount;
     }
 
     void insert(Key key, const FileLocation& loc)

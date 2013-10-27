@@ -76,6 +76,7 @@ public:
         
         size_t recSize = 0;
         this->stream.unpack(recSize);
+        recSize -= sizeof(size_t);
         assert(recSize <= loc.getMaxSize());
 
         unpackFunc(value, this->stream);
@@ -87,6 +88,19 @@ public:
             auto maxPos = static_cast<decltype(pos)>(loc.getAddr() + sizeof(size_t) + loc.getMaxSize());
             assert(pos <= maxPos);
         }
+    }
+
+    template<class T, class UnpackFunc>
+    FileLocation read(T& value, UnpackFunc unpackFunc)
+    {
+        this->stream.seekg(0, std::ios::beg);
+        size_t recSize = 0;
+        this->stream.read(recSize);
+        FileLocation loc;
+        loc.setAddr(0);
+        loc.setMaxSize(recSize);
+        this->read(loc, value, unpackFunc);
+        return loc;
     }
 
 private:

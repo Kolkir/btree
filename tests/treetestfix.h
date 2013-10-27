@@ -17,6 +17,10 @@ protected:
     {
         this->fileName = "test.dat";
         this->indexFileName = "test.idx";
+
+        std::remove(this->indexFileName.c_str());
+        std::remove(this->fileName.c_str());
+
         this->bTreeOrder = 4;
 
         {

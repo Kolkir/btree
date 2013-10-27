@@ -13,6 +13,29 @@
 namespace btree
 {
 
+namespace detail
+{
+    struct BTreeFileHeader
+    {
+        BTreeFileHeader() : height(0){}
+        size_t height;
+        FileLocation rootNodeLocation;
+    };
+
+    inline void PackBTreeFileHeader(const BTreeFileHeader& header, IOStream& stream)
+    {
+        stream.pack(header.height);
+        stream.pack(header.rootNodeLocation);
+    }
+
+    inline void UnPackBTreeFileHeader(BTreeFileHeader& header, IOStream& stream)
+    {
+        stream.unpack(header.height);
+        stream.unpack(header.rootNodeLocation);
+    }
+
+}
+
 template <class Key,
           size_t maxKeySize = sizeof(Key),
           class KeyPackFunc = KeyPack<Key>,
@@ -26,16 +49,25 @@ public:
     {
     }
 
+    ~BTree()
+    {
+        this->save();
+    }
+
     void open(std::iostream& stream)
     {
         this->nodes.clear();
         this->file.reset(new RecordFile(stream));
         this->root.reset(new Node(this->order));
-        FileLocation firstLocation;
-        this->file->read(firstLocation, *this->root, BTreeNodeUnPack<Key, maxKeySize, KeyUnPackFunc>);
-        this->root->setFileLocation(firstLocation);
+
+        detail::BTreeFileHeader header;
+        this->headerLocation = this->file->read(header, detail::UnPackBTreeFileHeader);
+        this->height = header.height;
+        assert(this->height != 0);
+
+        this->file->read(header.rootNodeLocation, *this->root, BTreeNodeUnPack<Key, maxKeySize, KeyUnPackFunc>);
+        this->root->setFileLocation(header.rootNodeLocation);
         this->nodes.push_back(root);
-        this->calcHeight();
     }
 
     void create(std::iostream& stream)
@@ -43,10 +75,23 @@ public:
         this->nodes.clear();
         this->file.reset(new RecordFile(stream));
         this->root.reset(new Node(this->order));
+
+        detail::BTreeFileHeader header;
+        this->headerLocation = this->file->append(header, detail::PackBTreeFileHeader);
+
         auto loc = this->file->append(*this->root, BTreeNodePack<Key, maxKeySize, KeyPackFunc>);
         this->root->setFileLocation(loc);
         this->height = 1;
         this->nodes.push_back(this->root);
+    }
+
+    void save()
+    {
+        detail::BTreeFileHeader header;
+        header.height = this->height;
+        header.rootNodeLocation = *this->root->getFileLocation();
+        auto loc = this->file->write(this->headerLocation, header, detail::PackBTreeFileHeader);
+        assert(loc == this->headerLocation);
     }
 
     void insert(Key key, const FileLocation& value)
@@ -64,7 +109,7 @@ public:
         }
 
         thisNode->insert(key, value);
-        bool overflow = !thisNode->canInsert();
+        bool overflow = thisNode->isOverflow();
 
         // handle special case of new largest key in tree
         if (newLargest)
@@ -101,7 +146,7 @@ public:
             parentNode->updateKey(largestKey, thisNode->largestKey());
 
             parentNode->insert(newNode->largestKey(), *newNode->getFileLocation());
-            overflow = !parentNode->canInsert();
+            overflow = parentNode->isOverflow();
 
             thisNode = parentNode;
         }
@@ -115,9 +160,10 @@ public:
         // else we just split the root
         auto loc = this->file->append(*this->root, BTreeNodePack<Key, maxKeySize, KeyPackFunc>); // put previous root into file
 
+        Key maxSplitKey = thisNode->largestKey();
         // insert 2 keys in new root node
         this->root->clear();
-        this->root->insert(thisNode->largestKey(), loc);
+        this->root->insert(maxSplitKey, loc);
         this->root->insert(newNode->largestKey(), *newNode->getFileLocation());
 
         ++this->height;
@@ -128,6 +174,11 @@ public:
         NodePtr node = this->findLeafNode(key);
         assert(node.get() != nullptr);
         return node->search(key, loc);
+    }
+
+    size_t getHeight() const
+    {
+        return this->height;
     }
 
 private:
@@ -186,6 +237,7 @@ private:
     NodePtr root;
     std::vector<NodePtr> nodes;
     std::unique_ptr<RecordFile> file;
+    FileLocation headerLocation;
 };
 
 }

@@ -24,19 +24,31 @@ TEST_F(TreeTest, InsertGet)
 
 TEST_F(TreeTest, CreateStructure)
 {
-    btree::BTree<char> tree(bTreeOrder);
-    tree.create(indexFile);
-
-    std::string keys = "CSDTAMPIBWNGURKEHOLJYQZFXV";
-    int index = 0;
-
-    auto i = keys.begin();
-    auto e = keys.end();
-    for (; i != e; ++i, ++index)
     {
-        auto loc = this->file->append(index, btree::PackPODFileRecord<int>);
-        tree.insert(*i, loc);
+        btree::BTree<char> tree(bTreeOrder);
+        tree.create(indexFile);
+
+        std::string keys = "CSDTAMPIBWNGURKEHOLJYQZFXV";
+        int index = 0;
+
+        auto i = keys.begin();
+        auto e = keys.end();
+        for (; i != e; ++i, ++index)
+        {
+            auto loc = this->file->append(index, btree::PackPODFileRecord<int>);
+            tree.insert(*i, loc);
+        }
     }
+
+    btree::BTree<char> tree(bTreeOrder);
+    tree.open(indexFile);
+
+    ASSERT_EQ(3, tree.getHeight());
+
+    //ASSERT_EQ(1, tree.nodesCount(0));
+
+    //std::vector<char> keys(bTreeOrder);
+    //tree.getKeys(
 };
 
 
