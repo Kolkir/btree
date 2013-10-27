@@ -43,6 +43,9 @@ template <class Key,
 class BTree
 {
 public:
+    typedef BTreeNode<Key> Node;
+    typedef std::shared_ptr<Node> NodePtr;
+
     BTree(size_t order)
         : order(order)
         , height(1)
@@ -181,14 +184,63 @@ public:
         return this->height;
     }
 
+    struct KeyNode;
+    typedef std::shared_ptr<KeyNode> KeyNodePtr;
+    struct KeyNode
+    {
+        NodePtr node;
+        std::map<Key, KeyNodePtr> children;
+    };
+
+    KeyNodePtr getTreeStructure()
+    {
+        using namespace std;
+
+        std::vector<KeyNodePtr> treeLevel;
+        std::vector<KeyNodePtr> nextLevel;
+
+        KeyNodePtr rootNode(new KeyNode);
+        rootNode->node = this->root;
+        treeLevel.push_back(rootNode);
+
+        size_t level = 0;
+
+        while (!treeLevel.empty())
+        {
+            nextLevel.clear();
+
+            std::for_each(treeLevel.begin(), treeLevel.end(),
+                [&](KeyNodePtr curKeyNode)
+            {
+                if (curKeyNode->node)
+                {
+                    for_each(curKeyNode->node->begin(), curKeyNode->node->end(),
+                        [&](const Node::MapIndex::value_type& val)
+                    {
+                        KeyNodePtr newNode(new KeyNode());
+                        if (level < (this->height - 1))
+                        {
+                            newNode->node = this->fetch(val.second);
+                        }
+                        curKeyNode->children.insert(std::make_pair(val.first, newNode));
+                        nextLevel.push_back(newNode);
+                    });
+                }
+            });
+
+            std::swap(treeLevel, nextLevel);
+            ++level;
+        }
+
+        return rootNode;
+    }
+
 private:
     BTree(const BTree&);
     BTree& operator= (const BTree&);
 
 
 private:
-    typedef BTreeNode<Key> Node;
-    typedef std::shared_ptr<Node> NodePtr;
 
     NodePtr newNode() const
     {

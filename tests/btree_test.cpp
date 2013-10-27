@@ -24,19 +24,28 @@ TEST_F(TreeTest, InsertGet)
 
 TEST_F(TreeTest, CreateStructure)
 {
+    std::string keys = "CSDTAMPIBWNGURKEHOLJYQZFXV";
+    int index = 0;
+
+    auto i = keys.begin();
+    auto e = keys.end();
+    std::vector<std::pair<char, btree::FileLocation>> locations;
+
+    for (; i != e; ++i, ++index)
+    {
+        auto loc = this->file->append(index, btree::PackPODFileRecord<int>);
+        locations.push_back(std::make_pair(*i, loc));
+    }
+
     {
         btree::BTree<char> tree(bTreeOrder);
         tree.create(indexFile);
 
-        std::string keys = "CSDTAMPIBWNGURKEHOLJYQZFXV";
-        int index = 0;
-
-        auto i = keys.begin();
-        auto e = keys.end();
-        for (; i != e; ++i, ++index)
+        auto i = locations.begin();
+        auto e = locations.end();
+        for (; i != e; ++i)
         {
-            auto loc = this->file->append(index, btree::PackPODFileRecord<int>);
-            tree.insert(*i, loc);
+            tree.insert(i->first, i->second);
         }
     }
 
@@ -45,10 +54,34 @@ TEST_F(TreeTest, CreateStructure)
 
     ASSERT_EQ(3, tree.getHeight());
 
-    //ASSERT_EQ(1, tree.nodesCount(0));
+    auto rootNode = tree.getTreeStructure();
 
-    //std::vector<char> keys(bTreeOrder);
-    //tree.getKeys(
+    ASSERT_EQ(3, rootNode->children.size());
+    auto nodeI = rootNode->children.find('I');
+    ASSERT_TRUE(nodeI != rootNode->children.end());
+    auto nodeP = rootNode->children.find('P');
+    ASSERT_TRUE(nodeP != rootNode->children.end());
+    auto nodeZ = rootNode->children.find('Z');
+    ASSERT_TRUE(nodeZ != rootNode->children.end());
+
+    ASSERT_EQ(3, nodeI->second->children.size());
+    auto nodeD = nodeI->second->children.find('D');
+    ASSERT_TRUE(nodeD != nodeI->second->children.end());
+    auto nodeG = nodeI->second->children.find('G');
+    ASSERT_TRUE(nodeG != nodeI->second->children.end());
+    auto nodeII = nodeI->second->children.find('I');
+    ASSERT_TRUE(nodeII != nodeI->second->children.end());
+
+    ASSERT_EQ(4, nodeD->second->children.size());
+    auto nodeA = nodeD->second->children.find('A');
+    ASSERT_TRUE(nodeA != nodeD->second->children.end());
+    auto nodeB = nodeD->second->children.find('B');
+    ASSERT_TRUE(nodeB!= nodeD->second->children.end());
+    auto nodeC = nodeD->second->children.find('C');
+    ASSERT_TRUE(nodeC != nodeD->second->children.end());
+    auto nodeDD = nodeD->second->children.find('D');
+    ASSERT_TRUE(nodeDD != nodeD->second->children.end());
+
 };
 
 

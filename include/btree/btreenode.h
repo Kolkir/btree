@@ -16,6 +16,7 @@ template<class Key>
 class BTreeNode
 {
 public:
+    typedef std::map<Key, FileLocation> MapIndex;
 
     //needed for reading
     BTreeNode()
@@ -129,6 +130,16 @@ public:
         return this->fileLocation.get();
     }
 
+    typename MapIndex::const_iterator begin() const
+    {
+        return this->index.begin();
+    }
+
+    typename MapIndex::const_iterator end() const
+    {
+        return this->index.end();
+    }
+
     template <class TKey, size_t maxKeySize, class KeyPackFunc>
     friend void BTreeNodePack(const BTreeNode<TKey>& node, IOStream& stream);
     
@@ -143,7 +154,6 @@ private:
 
 private:
     size_t maxKeysCount;
-    typedef std::map<Key, FileLocation> MapIndex;
     MapIndex index;
     std::unique_ptr<FileLocation> fileLocation;
 };
