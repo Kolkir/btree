@@ -1,7 +1,6 @@
 #ifndef _FILE_LOCATION_H_
 #define _FILE_LOCATION_H_
 
-#include <btree/importexport.h>
 #include <cstddef>
 
 namespace btree
@@ -11,7 +10,7 @@ typedef unsigned long long RecAddr;
 
 class RecordFile;
 
-class BTREE_API FileLocation
+class FileLocation
 {
 public:
     FileLocation()

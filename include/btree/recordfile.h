@@ -1,7 +1,6 @@
 #ifndef _RECORD_FILE_H_
 #define _RECORD_FILE_H_
 
-#include <btree/importexport.h>
 #include <btree/filelocation.h>
 #include <btree/stream.h>
 
@@ -12,7 +11,7 @@
 namespace btree
 {
 
-class BTREE_API RecordFile
+class RecordFile
 {
 public:
     RecordFile(std::iostream& stream)

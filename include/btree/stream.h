@@ -1,7 +1,6 @@
 #ifndef _IOBUFFER_H_
 #define _IOBUFFER_H_
 
-#include <btree/importexport.h>
 #include <btree/defpack.h>
 
 #include <iterator>
@@ -13,7 +12,7 @@
 namespace btree
 {
 
-class BTREE_API IOStream
+class IOStream
 {
 public:
     IOStream(std::iostream& stream)
