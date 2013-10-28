@@ -82,6 +82,21 @@ TEST_F(TreeTest, CreateStructure)
     auto nodeDD = nodeD->second->children.find('D');
     ASSERT_TRUE(nodeDD != nodeD->second->children.end());
 
+    index = 0;
+
+    auto li = locations.begin();
+    auto le = locations.end();
+
+    btree::FileLocation loc;
+    int idx = 0;
+    for (; li != le; ++li)
+    {
+        ASSERT_TRUE(tree.get(li->first, loc));
+        this->file->read(loc, idx, btree::UnPackPODFileRecord<int>);
+        ASSERT_EQ(index, idx);
+        ++index;
+    }
+
 };
 
 

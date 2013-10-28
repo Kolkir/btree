@@ -97,7 +97,13 @@ public:
     {
         assert(!this->index.empty());
         auto i = this->index.upper_bound(key);
-        if (i != this->index.end())
+        //check exact match
+        if (i != this->index.begin() && std::prev(i)->first == key)
+        {
+            loc = std::prev(i)->second;
+        }
+        //check inexact
+        else if (i != this->index.end())
         {
             loc = i->second;
         }
