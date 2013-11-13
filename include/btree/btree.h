@@ -111,7 +111,6 @@ public:
         }
 
         thisNode->insert(key, value);
-        bool overflow = thisNode->isOverflow();
 
         // handle special case of new largest key in tree
         if (newLargest)
@@ -128,7 +127,9 @@ public:
 
         decltype(this->root) newNode;
         Key largestKey;
-        int level = this->height - 1; 
+        int level = this->height - 1;
+
+        bool overflow = thisNode->isOverflow();
         while (overflow)
         {
             //remember the largest key
@@ -176,6 +177,38 @@ public:
         NodePtr node = this->findLeafNode(key);
         assert(node.get() != nullptr);
         return node->search(key, loc);
+    }
+
+    bool remove(Key key)
+    {
+        auto thisNode = this->findLeafNode(key);
+
+        bool wasLargest = false;
+        Key prevKey;
+
+        // test for special case of new largest key in tree
+        if (key == thisNode->largestKey())
+        {
+            wasLargest = true;
+            prevKey = thisNode->largestKey();
+        }
+
+        thisNode->remove(key, value);
+
+        // handle special case of deletion largest key in tree
+        if (wasLargest && !thisNode->empty())
+        {
+            Key newLargest = thisNode->largestKey();
+            for (size_t i = 0; i < this->height - 1; ++i)
+            {
+                this->nodes[i]->updateKey(prevKey, newLargest);
+                if (i > 0)
+                {
+                    this->store(*this->nodes[i]);
+                }
+            }
+        }
+
     }
 
     size_t getHeight() const

@@ -97,6 +97,7 @@ TEST_F(TreeTest, CreateStructure)
         ++index;
     }
 
+    tree.remove('A');
 };
 
 
