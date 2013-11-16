@@ -11,7 +11,7 @@ TEST_F(TreeTest, InsertGet)
     a.y = 56.78;
     auto loc1 = this->file->append(a, btree::PackPODFileRecord<A>);
 
-    btree::BTree<std::string, 100> tree(bTreeOrder);
+    btree::BTree<btree::AStringKey<100>> tree(bTreeOrder);
     tree.create(indexFile);
     tree.insert("Rec1", loc1);
 
@@ -38,7 +38,7 @@ TEST_F(TreeTest, CreateStructure)
     }
 
     {
-        btree::BTree<char> tree(bTreeOrder);
+        btree::BTree<btree::PodKey<char>> tree(bTreeOrder);
         tree.create(indexFile);
 
         auto i = locations.begin();
@@ -49,7 +49,7 @@ TEST_F(TreeTest, CreateStructure)
         }
     }
 
-    btree::BTree<char> tree(bTreeOrder);
+    btree::BTree<btree::PodKey<char>> tree(bTreeOrder);
     tree.open(indexFile);
 
     ASSERT_EQ(3, tree.getHeight());
@@ -96,8 +96,4 @@ TEST_F(TreeTest, CreateStructure)
         ASSERT_EQ(index, idx);
         ++index;
     }
-
-    tree.remove('A');
 };
-
-

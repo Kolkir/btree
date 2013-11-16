@@ -15,7 +15,7 @@ TEST_F(TreeTest, NodeTest1)
     a.y = 56.78;
     auto loc1 = this->file->append(a, btree::PackPODFileRecord<A>);
 
-    btree::BTreeNode<std::string> node(2);
+    btree::BTreeNode<btree::AStringKey<100>> node(2);
     node.insert("abc", loc1);
 
     btree::FileLocation loc2;
@@ -36,7 +36,7 @@ TEST_F(TreeTest, NodeTest2)
     std::unique_ptr<btree::FileLocation> nodeLoaction;
     {
         btree::RecordFile file(indexFile);
-        btree::BTreeNode<std::string> node(bTreeOrder);
+        btree::BTreeNode<btree::AStringKey<100>> node(bTreeOrder);
         ASSERT_FALSE(node.isOverflow());
         node.insert("abc", loc1);
         ASSERT_FALSE(node.isOverflow());
@@ -52,13 +52,13 @@ TEST_F(TreeTest, NodeTest2)
         node.remove("abcdef", loc4);
         ASSERT_FALSE(node.isOverflow());
 
-        nodeLoaction.reset(new btree::FileLocation(file.append(node, btree::BTreeNodePack<std::string, 100, btree::KeyPack<std::string> >)));
+        nodeLoaction.reset(new btree::FileLocation(file.append(node, btree::BTreeNodePack<btree::AStringKey<100>>)));
         indexFile.flush();
     }
     ASSERT_TRUE(nodeLoaction.get() != nullptr);
     btree::RecordFile file(indexFile);
-    btree::BTreeNode<std::string> node;
-    file.read(*nodeLoaction, node, btree::BTreeNodeUnPack<std::string, 100, btree::KeyUnPack<std::string> >);
+    btree::BTreeNode<btree::AStringKey<100>> node;
+    file.read(*nodeLoaction, node, btree::BTreeNodeUnPack<btree::AStringKey<100>>);
     
     ASSERT_FALSE(node.isOverflow());
     ASSERT_TRUE(node.search("abc", loc2));

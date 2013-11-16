@@ -11,11 +11,12 @@
 namespace btree
 {
 
-template<class Key>
+template<class KeyDef>
 class BTreeNode
 {
 public:
-    typedef std::map<Key, FileLocation> MapIndex;
+    typedef typename KeyDef::Key KeyType;
+    typedef std::map<typename KeyDef::Key, FileLocation, typename KeyDef::Less> MapIndex;
 
     //needed for reading
     BTreeNode()
@@ -38,7 +39,7 @@ public:
         return this->index.size() >= this->maxKeysCount;
     }
 
-    void insert(Key key, const FileLocation& loc)
+    void insert(KeyType key, const FileLocation& loc)
     {
         this->index.insert(std::make_pair(key, loc));
     }
@@ -59,7 +60,7 @@ public:
         this->index.erase(s, e);
     }
 
-    void updateKey(Key oldKey, Key newKey)
+    void updateKey(const KeyType& oldKey, const KeyType& newKey)
     {
         FileLocation loc;
         if (this->search(oldKey, loc))
@@ -69,7 +70,7 @@ public:
         }
     }
 
-    void remove(Key key, FileLocation& loc)
+    void remove(const KeyType& key, FileLocation& loc)
     {
         auto i = this->index.find(key);
         if (i != this->index.end())
@@ -79,7 +80,7 @@ public:
         }
     }
 
-    bool search(Key key, FileLocation& loc)
+    bool search(const KeyType& key, FileLocation& loc)
     {
         auto i = this->index.find(key);
         if (i != this->index.end())
@@ -93,7 +94,7 @@ public:
         }
     }
 
-    void searchInexact(Key key, FileLocation& loc)
+    void searchInexact(const KeyType& key, FileLocation& loc)
     {
         assert(!this->index.empty());
         auto i = this->index.upper_bound(key);
@@ -113,11 +114,11 @@ public:
         }
     }
 
-    Key largestKey() const
+    KeyType largestKey() const
     {
         if (this->index.empty())
         {
-            return Key();
+            return KeyType();
         }
         else
         {
@@ -127,7 +128,7 @@ public:
 
     void setFileLocation(const FileLocation& loc)
     {
-        this->fileLocation.reset( new FileLocation(loc));
+        this->fileLocation.reset(new FileLocation(loc));
     }
 
     const FileLocation* getFileLocation() const
@@ -145,12 +146,12 @@ public:
         return this->index.end();
     }
 
-    template <class TKey, size_t maxKeySize, class KeyPackFunc>
-    friend void BTreeNodePack(const BTreeNode<TKey>& node, IOStream& stream);
+    template <class TKeyDef>
+    friend void BTreeNodePack(const BTreeNode<TKeyDef>& node, IOStream& stream);
     
 
-    template<class TKey, size_t keyMaxSize, class KeyUnPackFunc>
-    friend void BTreeNodeUnPack(BTreeNode<TKey>& node, IOStream& stream);
+    template<class TKeyDef>
+    friend void BTreeNodeUnPack(BTreeNode<TKeyDef>& node, IOStream& stream);
     
 
 private:
@@ -161,53 +162,51 @@ private:
     size_t maxKeysCount;
     MapIndex index;
     std::unique_ptr<FileLocation> fileLocation;
+    KeyDef keyDef;
 };
 
-template<class TKey, size_t keyMaxSize, class TKeyPackFunc>
-inline void BTreeNodePack(const BTreeNode<TKey>& node, IOStream& stream)
+template<class TKeyDef>
+inline void BTreeNodePack(const BTreeNode<TKeyDef>& node, IOStream& stream)
 {
     stream.pack(node.maxKeysCount);
 
     stream.pack(node.index.size());
 
     std::for_each(node.index.begin(), node.index.end(),
-        [&](const typename BTreeNode<TKey>::MapIndex::value_type& value)
+        [&](const typename BTreeNode<TKeyDef>::MapIndex::value_type& value)
     {
-        TKeyPackFunc pack;
-        pack(value.first, stream, keyMaxSize);
+        node.keyDef.pack(value.first, stream);
         stream.pack(value.second);
     });
 
     //store all posible set to reserve location
     auto leftCount = node.maxKeysCount - node.index.size();
-    TKey key;
+    typename TKeyDef::Key key;
     FileLocation loc;
 
     for (size_t i = 0; i < leftCount; ++i)
     {
-        TKeyPackFunc pack;
-        pack(key, stream, keyMaxSize);
+        node.keyDef.pack(key, stream);
         stream.pack(loc);
     }
 }
 
-template<class TKey, size_t keyMaxSize, class TKeyPackUnFunc>
-inline void BTreeNodeUnPack(BTreeNode<TKey>& node, IOStream& stream)
+template<class TKeyDef>
+inline void BTreeNodeUnPack(BTreeNode<TKeyDef>& node, IOStream& stream)
 {
     stream.unpack(node.maxKeysCount);
 
     size_t indexCount = 0;
     stream.unpack(indexCount);
 
-    TKey key;
+    typename TKeyDef::Key key;
     FileLocation loc;
 
     node.index.clear();
     
     for (size_t i = 0; i < indexCount; ++i)
     {
-        TKeyPackUnFunc unpack;
-        unpack(key, stream, keyMaxSize);
+        node.keyDef.unpack(key, stream);
         stream.unpack(loc);
         node.index.insert(std::make_pair(key, loc));
     }

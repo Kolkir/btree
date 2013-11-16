@@ -11,72 +11,67 @@
 
 namespace btree
 {
-    template <class T, class Enable = void>
-    class KeyPack
-    {
-    };
-
-    template <class T, class Enable = void>
-    class KeyUnPack
+    
+    template<class T, class Enable = void>
+    class PodKey final
     {
     };
 
     template <class T>
-    class KeyPack<T, typename std::enable_if<std::is_pod<T>::value>::type>
+    class PodKey <T, typename std::enable_if<std::is_pod<T>::value>::type> final
     {
     public:
-        void operator()(const T& value, IOStream& stream, size_t)
+        typedef T Key;
+        typedef std::less<Key> Less;
+
+        void pack(const Key& value, IOStream& stream) const
         {
             stream.pack(value);
         }
-    };
-
-    template <class T>
-    class KeyUnPack<T, typename std::enable_if<std::is_pod<T>::value>::type>
-    {
-    public:
-        void operator()(T& value, IOStream& stream, size_t)
+    
+        void unpack(Key& value, IOStream& stream) const
         {
             stream.unpack(value);
         }
     };
 
-    template<>
-    class KeyPack<std::string, void>
+
+    template<size_t Len, class Elem, class Traits, class Allocator>
+    class StringKey final
     {
     public:
-        void operator()(const std::string& value, IOStream& stream, size_t maxSize)
+        typedef std::basic_string<Elem, Traits, Allocator> Key;
+        typedef std::less<Key> Less;
+
+        void pack(const Key& value, IOStream& stream) const
         {
-            if (value.length() > maxSize)
+            if (value.length() > Len)
             {
                 throw InvalidKeyLength("Can't store a key");
             }
             stream.pack(value.length());
-            std::string str(maxSize, ' ');
+            Key str(Len, Key::value_type(0));
             std::copy(value.begin(), value.end(), str.begin());
             stream.pack(str);
         }
-    };
-
-    template <>
-    class KeyUnPack<std::string, void>
-    {
-    public:
-        void operator()(std::string& value, IOStream& stream, size_t maxSize)
+    
+        void unpack(Key& value, IOStream& stream) const
         {
             size_t size = 0;
             stream.unpack(size);
-            if (size > maxSize)
+            if (size > Len)
             {
                 throw InvalidKeyLength("Can't load a key");
             }
-            std::string str;
+            Key str;
             stream.unpack(str);
             value = str;
             value.resize(size);
         }
     };
 
+    template <size_t Len> using AStringKey = StringKey<Len, char, std::char_traits<char>, std::allocator<char>>;
+    template <size_t Len> using WStringKey = StringKey<Len, wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>;
 }
 
 #endif

@@ -32,17 +32,14 @@ namespace detail
         stream.unpack(header.height);
         stream.unpack(header.rootNodeLocation);
     }
-
 }
 
-template <class Key,
-          size_t maxKeySize = sizeof(Key),
-          class KeyPackFunc = KeyPack<Key>,
-          class KeyUnPackFunc = KeyUnPack<Key>>
+template <class KeyDef>
 class BTree
 {
 public:
-    typedef BTreeNode<Key> Node;
+    typedef typename KeyDef::Key KeyType;
+    typedef BTreeNode<KeyDef> Node;
     typedef std::shared_ptr<Node> NodePtr;
 
     BTree(size_t order)
@@ -67,7 +64,7 @@ public:
         this->height = header.height;
         assert(this->height != 0);
 
-        this->file->read(header.rootNodeLocation, *this->root, BTreeNodeUnPack<Key, maxKeySize, KeyUnPackFunc>);
+        this->file->read(header.rootNodeLocation, *this->root, BTreeNodeUnPack<KeyDef>);
         this->root->setFileLocation(header.rootNodeLocation);
         this->nodes.push_back(root);
     }
@@ -81,7 +78,7 @@ public:
         detail::BTreeFileHeader header;
         this->headerLocation = this->file->append(header, detail::PackBTreeFileHeader);
 
-        auto loc = this->file->append(*this->root, BTreeNodePack<Key, maxKeySize, KeyPackFunc>);
+        auto loc = this->file->append(*this->root, BTreeNodePack<KeyDef>);
         this->root->setFileLocation(loc);
         this->height = 1;
         this->nodes.push_back(this->root);
@@ -96,18 +93,17 @@ public:
         assert(loc == this->headerLocation);
     }
 
-    void insert(Key key, const FileLocation& value)
+    void insert(const KeyType& key, const FileLocation& value)
     {
         auto thisNode = this->findLeafNode(key);
         
         bool newLargest = false;
-        Key prevKey;
+        KeyType prevLargestKey(thisNode->largestKey());
 
         // test for special case of new largest key in tree
-        if (key > thisNode->largestKey())
+        if (KeyDef::Less()(thisNode->largestKey(), key))
         {
             newLargest = true; 
-            prevKey = thisNode->largestKey();
         }
 
         thisNode->insert(key, value);
@@ -117,7 +113,7 @@ public:
         {
             for (size_t i = 0; i < this->height - 1; ++i) 
             {
-                this->nodes[i]->updateKey(prevKey, key);
+                this->nodes[i]->updateKey(prevLargestKey, key);
                 if (i > 0)
                 {
                     this->store(*this->nodes[i]);
@@ -126,14 +122,13 @@ public:
         }
 
         decltype(this->root) newNode;
-        Key largestKey;
         int level = this->height - 1;
 
         bool overflow = thisNode->isOverflow();
         while (overflow)
         {
             //remember the largest key
-            largestKey = thisNode->largestKey();
+            KeyType largestKey(thisNode->largestKey());
             // split the node
             newNode = this->newNode();
             thisNode->split(*newNode);
@@ -161,9 +156,9 @@ public:
         }
 
         // else we just split the root
-        auto loc = this->file->append(*this->root, BTreeNodePack<Key, maxKeySize, KeyPackFunc>); // put previous root into file
+        auto loc = this->file->append(*this->root, BTreeNodePack<KeyDef>); // put previous root into file
 
-        Key maxSplitKey = thisNode->largestKey();
+        KeyType maxSplitKey(thisNode->largestKey());
         // insert 2 keys in new root node
         this->root->clear();
         this->root->insert(maxSplitKey, loc);
@@ -172,43 +167,11 @@ public:
         ++this->height;
     }
 
-    bool get(Key key, FileLocation& loc)
+    bool get(const KeyType& key, FileLocation& loc)
     {
         NodePtr node = this->findLeafNode(key);
         assert(node.get() != nullptr);
         return node->search(key, loc);
-    }
-
-    bool remove(Key key)
-    {
-        auto thisNode = this->findLeafNode(key);
-
-        bool wasLargest = false;
-        Key prevKey;
-
-        // test for special case of new largest key in tree
-        if (key == thisNode->largestKey())
-        {
-            wasLargest = true;
-            prevKey = thisNode->largestKey();
-        }
-
-        thisNode->remove(key, value);
-
-        // handle special case of deletion largest key in tree
-        if (wasLargest && !thisNode->empty())
-        {
-            Key newLargest = thisNode->largestKey();
-            for (size_t i = 0; i < this->height - 1; ++i)
-            {
-                this->nodes[i]->updateKey(prevKey, newLargest);
-                if (i > 0)
-                {
-                    this->store(*this->nodes[i]);
-                }
-            }
-        }
-
     }
 
     size_t getHeight() const
@@ -221,7 +184,7 @@ public:
     struct KeyNode
     {
         NodePtr node;
-        std::map<Key, KeyNodePtr> children;
+        std::map<KeyType, KeyNodePtr> children;
     };
 
     KeyNodePtr getTreeStructure()
@@ -277,12 +240,12 @@ private:
     NodePtr newNode() const
     {
         NodePtr newNode(new Node(this->order));
-        auto loc = this->file->append(*newNode, BTreeNodePack<Key, maxKeySize, KeyPackFunc>);
+        auto loc = this->file->append(*newNode, BTreeNodePack<KeyDef>);
         newNode->setFileLocation(loc);
         return newNode;
     }
 
-    NodePtr findLeafNode(Key key)
+    NodePtr findLeafNode(const KeyType& key)
     {
         this->nodes.clear();
         this->nodes.push_back(this->root);
@@ -300,15 +263,15 @@ private:
     NodePtr fetch(const FileLocation& loc)
     {
         NodePtr newNode(new Node(this->order));
-        this->file->read(loc, *newNode, BTreeNodeUnPack<Key, maxKeySize, KeyUnPackFunc>);
+        this->file->read(loc, *newNode, BTreeNodeUnPack<KeyDef>);
         newNode->setFileLocation(loc);
         return newNode;
     }
 
-    void store(const BTreeNode<Key>& node)
+    void store(const Node& node)
     {
         assert(node.getFileLocation() != nullptr);
-        auto newLoc = this->file->write(*node.getFileLocation(), node, BTreeNodePack<Key, maxKeySize, KeyPackFunc>);
+        auto newLoc = this->file->write(*node.getFileLocation(), node, BTreeNodePack<KeyDef>);
         if (newLoc != *node.getFileLocation())
         {
             throw IndexLocationChanged("Can't store a node");
