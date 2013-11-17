@@ -247,15 +247,28 @@ private:
 
     NodePtr findLeafNode(const KeyType& key)
     {
-        this->nodes.clear();
-        this->nodes.push_back(this->root);
-
+        bool reloaded = false;
         // start from second level to handle empty first level situation
         for (size_t level = 1; level < this->height; ++level)
         {
             FileLocation recLocation;
-            this->nodes.back()->searchInexact(key, recLocation);
-            this->nodes.push_back(this->fetch(recLocation));
+            
+            if (!reloaded)
+            {
+                this->nodes.at(level - 1)->searchInexact(key, recLocation);
+                if (level >= this->nodes.size() || //  check node at this level loaded
+                    !this->nodes.at(level)->equal(key, recLocation)) //prevent unnessary loading 
+                {
+                    reloaded = true;
+                    this->nodes.resize(level); //remove loaded nodes from the other branch
+                    this->nodes.push_back(this->fetch(recLocation));
+                }
+            }
+            else
+            {
+                this->nodes.back()->searchInexact(key, recLocation);
+                this->nodes.push_back(this->fetch(recLocation));
+            }
         }
         return this->nodes.back();
     }

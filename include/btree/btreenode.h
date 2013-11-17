@@ -39,11 +39,23 @@ public:
         return this->index.size() >= this->maxKeysCount;
     }
 
-    void insert(KeyType key, const FileLocation& loc)
+    void insert(const KeyType& key, const FileLocation& loc)
     {
         this->index.insert(std::make_pair(key, loc));
     }
-
+    
+    bool equal(const KeyType& key, const FileLocation& loc)
+    {
+        if (this->fileLocation && !this->index.empty())
+        {
+            const auto& lKey = this->index.rbegin()->first;
+            return (!(lKey < key) &&
+                    !(key < lKey) &&
+                    loc == *this->fileLocation);
+        }
+        return false;
+    }
+    
     void split(BTreeNode& newNode)
     {
         auto midpt = (this->index.size() + 1) / 2;
