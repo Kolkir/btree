@@ -252,21 +252,19 @@ private:
         for (size_t level = 1; level < this->height; ++level)
         {
             FileLocation recLocation;
-            
+            this->nodes.at(level - 1)->searchInexact(key, recLocation);
+
             if (!reloaded)
             {
-                this->nodes.at(level - 1)->searchInexact(key, recLocation);
                 if (level >= this->nodes.size() || //  check node at this level loaded
                     !this->nodes.at(level)->equal(key, recLocation)) //prevent unnessary loading 
                 {
                     reloaded = true;
                     this->nodes.resize(level); //remove loaded nodes from the other branch
-                    this->nodes.push_back(this->fetch(recLocation));
                 }
             }
-            else
+            if (reloaded)
             {
-                this->nodes.back()->searchInexact(key, recLocation);
                 this->nodes.push_back(this->fetch(recLocation));
             }
         }
