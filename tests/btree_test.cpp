@@ -19,6 +19,8 @@ TEST_F(TreeTest, InsertGet)
     auto val = tree.get("Rec1", loc2);
     ASSERT_TRUE(val);
     ASSERT_EQ(loc1, loc2);
+    
+    tree.remove("Rec1");
 };
 
 

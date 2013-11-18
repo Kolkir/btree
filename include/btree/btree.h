@@ -96,7 +96,8 @@ public:
     void insert(const KeyType& key, const FileLocation& value)
     {
         auto thisNode = this->findLeafNode(key);
-        
+        assert(thisNode.get() != nullptr);
+
         bool newLargest = false;
         KeyType prevLargestKey(thisNode->largestKey());
 
@@ -165,6 +166,93 @@ public:
         this->root->insert(newNode->largestKey(), *newNode->getFileLocation());
 
         ++this->height;
+    }
+
+    bool remove(const KeyType& key)
+    {
+        auto thisNode = this->findLeafNode(key);
+        assert(thisNode.get() != nullptr);
+
+        FileLocation loc;
+        if (thisNode->search(key, loc))
+        {
+            KeyType prevLargestKey = thisNode->largestKey();
+           
+            bool hasMinKeyCount = thisNode->hasMinimumKeyCount();
+            bool hasNoSiblings = true;
+
+            if (hasMinKeyCount)
+            {
+                if (this->height > 1) // if this not a root 
+                {
+                    // get sibling node
+                    auto parentNode = this->nodes.at(this->height - 2);
+                    auto siblingNode = parentNode->getMergeSibling(key);
+
+                    // if sibling node has enough free space 
+                    if (siblingNode)
+                    {
+                        hasNoSiblings = false;
+                        thisNode->remove(key, loc);
+
+                        // remember largest sibling's key
+                        prevLargestKey = siblingNode->largestKey();
+
+                        // merge thisNode with sibling
+                        siblingNode->merge(thisNode);
+
+                        // remove key from parent
+                        if (KeyDef::Less()(key, prevLargestKey))
+                        {
+                            // remove key
+                        }
+                        else
+                        {
+                            // remove prevLargestKey
+                        }
+
+                        // if largest sibling's key was changed update upper nodes
+                        thisNode = siblingNode;
+                    }
+                    else
+                    {
+                        siblingNode = parentNode->getRedistributeSibling(key);
+                        if (siblingNode)
+                        {
+                            hasNoSiblings = false;
+                            thisNode->remove(key, loc);
+
+                            // redistribute some keys from sibling to thisNode
+                            thisNode->redistribute(siblingNode);
+                        }
+                    }
+                }
+            }
+
+            if (!hasMinKeyCount || hasNoSiblings)
+            {
+                thisNode->remove(key, loc);
+            }
+            
+            // if largest key in thisNode was changed update upper nodes
+            KeyType newLargestKey = thisNode->largestKey();
+            bool largestChanged = !KeyDef::Less()(prevLargestKey, newLargestKey) &&
+                                  !KeyDef::Less()(newLargestKey, prevLargestKey);
+
+            if (largestChanged)
+            {
+                for (size_t i = 0; i < this->height - 1; ++i)
+                {
+                    this->nodes[i]->updateKey(prevLargestKey, newLargestKey);
+                    if (i > 0)
+                    {
+                        this->store(*this->nodes[i]);
+                    }
+                }
+            }
+            
+        }
+        return false;
     }
 
     bool get(const KeyType& key, FileLocation& loc)

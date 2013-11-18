@@ -21,10 +21,12 @@ public:
     //needed for reading
     BTreeNode()
         : maxKeysCount(0)
+        , minKeysCount(0)
     {};
 
     BTreeNode(size_t maxKeysCount)
         : maxKeysCount(maxKeysCount + 1)
+        , minKeysCount(maxKeysCount / 2)
     {};
 
     ~BTreeNode(){};
@@ -39,6 +41,11 @@ public:
         return this->index.size() >= this->maxKeysCount;
     }
 
+    bool hasMinimumKeyCount() const
+    {
+        return this->index.size() <= this->minKeysCount;
+    }
+
     void insert(const KeyType& key, const FileLocation& loc)
     {
         this->index.insert(std::make_pair(key, loc));
@@ -49,8 +56,8 @@ public:
         if (this->fileLocation && !this->index.empty())
         {
             const auto& lKey = this->index.rbegin()->first;
-            return (!(lKey < key) &&
-                    !(key < lKey) &&
+            return (!KeyDef::Less()(lKey , key) &&
+                    !KeyDef::Less()(key , lKey) &&
                     loc == *this->fileLocation);
         }
         return false;
@@ -172,6 +179,7 @@ private:
 
 private:
     size_t maxKeysCount;
+    size_t minKeysCount;
     MapIndex index;
     std::unique_ptr<FileLocation> fileLocation;
     KeyDef keyDef;
