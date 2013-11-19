@@ -41,10 +41,16 @@ public:
         return this->index.size() >= this->maxKeysCount;
     }
 
-    bool hasMinimumKeyCount() const
+    bool isUnderfow() const
     {
         return this->index.size() <= this->minKeysCount;
     }
+
+    bool canMergeWith(const BTreeNode& node)
+    {
+        return (this->index.size() + node.index.size() <= this->maxKeysCount)
+    }
+
 
     void insert(const KeyType& key, const FileLocation& loc)
     {

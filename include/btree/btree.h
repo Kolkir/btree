@@ -177,80 +177,39 @@ public:
         if (thisNode->search(key, loc))
         {
             KeyType prevLargestKey = thisNode->largestKey();
-           
-            bool hasMinKeyCount = thisNode->hasMinimumKeyCount();
-            bool hasNoSiblings = true;
 
-            if (hasMinKeyCount)
+            thisNode->remove(key, loc);
+
+            bool underflow = thisNode->isUnderflow();
+
+            if (!underflow)
             {
-                if (this->height > 1) // if this not a root 
+                // if largest key in thisNode was changed update upper nodes
+                KeyType newLargestKey = thisNode->largestKey();
+
+                bool largestChanged = KeyDef::Less()(newLargestKey, prevLargestKey);
+
+                if (largestChanged)
                 {
-                    // get sibling node
-                    auto parentNode = this->nodes.at(this->height - 2);
-                    auto siblingNode = parentNode->getMergeSibling(key);
-
-                    // if sibling node has enough free space 
-                    if (siblingNode)
+                    for (size_t i = 0; i < this->height - 1; ++i)
                     {
-                        hasNoSiblings = false;
-                        thisNode->remove(key, loc);
-
-                        // remember largest sibling's key
-                        prevLargestKey = siblingNode->largestKey();
-
-                        // merge thisNode with sibling
-                        siblingNode->merge(thisNode);
-
-                        // remove key from parent
-                        if (KeyDef::Less()(key, prevLargestKey))
+                        this->nodes[i]->updateKey(prevLargestKey, newLargestKey);
+                        if (i > 0)
                         {
-                            // remove key
-                        }
-                        else
-                        {
-                            // remove prevLargestKey
-                        }
-
-                        // if largest sibling's key was changed update upper nodes
-                        thisNode = siblingNode;
-                    }
-                    else
-                    {
-                        siblingNode = parentNode->getRedistributeSibling(key);
-                        if (siblingNode)
-                        {
-                            hasNoSiblings = false;
-                            thisNode->remove(key, loc);
-
-                            // redistribute some keys from sibling to thisNode
-                            thisNode->redistribute(siblingNode);
+                            this->store(*this->nodes[i]);
                         }
                     }
                 }
             }
-
-            if (!hasMinKeyCount || hasNoSiblings)
+            else
             {
-                thisNode->remove(key, loc);
-            }
-            
-            // if largest key in thisNode was changed update upper nodes
-            KeyType newLargestKey = thisNode->largestKey();
-            bool largestChanged = !KeyDef::Less()(prevLargestKey, newLargestKey) &&
-                                  !KeyDef::Less()(newLargestKey, prevLargestKey);
-
-            if (largestChanged)
-            {
-                for (size_t i = 0; i < this->height - 1; ++i)
+                int level = this->height - 1;
+                while (underflow)
                 {
-                    this->nodes[i]->updateKey(prevLargestKey, newLargestKey);
-                    if (i > 0)
-                    {
-                        this->store(*this->nodes[i]);
-                    }
+
                 }
             }
-            
+            return true;
         }
         return false;
     }
