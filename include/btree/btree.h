@@ -112,14 +112,7 @@ public:
         // handle special case of new largest key in tree
         if (newLargest)
         {
-            for (size_t i = 0; i < this->height - 1; ++i) 
-            {
-                this->nodes[i]->updateKey(prevLargestKey, key);
-                if (i > 0)
-                {
-                    this->store(*this->nodes[i]);
-                }
-            }
+            this->updateLargestKey(prevLargestKey, key);
         }
 
         decltype(this->root) newNode;
@@ -176,7 +169,7 @@ public:
         FileLocation loc;
         if (thisNode->search(key, loc))
         {
-            KeyType prevLargestKey = thisNode->largestKey();
+            KeyType prevLargestKey(thisNode->largestKey());
 
             thisNode->remove(key, loc);
 
@@ -185,20 +178,13 @@ public:
             if (!underflow)
             {
                 // if largest key in thisNode was changed update upper nodes
-                KeyType newLargestKey = thisNode->largestKey();
+                KeyType newLargestKey(thisNode->largestKey());
 
-                bool largestChanged = KeyDef::Less()(newLargestKey, prevLargestKey);
+                bool largestChanged = KeyDef::Less()(prevLargestKey, newLargestKey);
 
                 if (largestChanged)
                 {
-                    for (size_t i = 0; i < this->height - 1; ++i)
-                    {
-                        this->nodes[i]->updateKey(prevLargestKey, newLargestKey);
-                        if (i > 0)
-                        {
-                            this->store(*this->nodes[i]);
-                        }
-                    }
+                    this->updateLargestKey(prevLargestKey, newLargestKey);
                 }
             }
             else
@@ -206,8 +192,70 @@ public:
                 int level = this->height - 1;
                 while (underflow)
                 {
+                    KeyType largestKey(thisNode->largestKey());
 
+                    NodePtr sibling = getSibling(thisNode, level);
+                    assert(sibling);
+
+                    KeyType siblingLargestKey(sibling->largestKey());
+
+                    //redistribute
+                    if (thisNode->takeFrom(*sibling))
+                    {
+                        // if largest key in thisNode was changed update upper nodes
+                        KeyType newLargestKey(thisNode->largestKey());
+
+                        bool largestChanged = KeyDef::Less()(largestKey, newLargestKey);
+
+                        if (largestChanged)
+                        {
+                            this->updateLargestKey(largestKey, newLargestKey);
+                        }
+
+                        KeyType newSiblingLargestKey(sibling->largestKey());
+                        
+                        largestChanged = KeyDef::Less()(siblingLargestKey, newSiblingLargestKey);
+
+                        if (largestChanged)
+                        {
+                            this->updateLargestKey(siblingLargestKey, newSiblingLargestKey);
+                        }
+                        break; //we need no to propagte changes up
+                    }
+                    else if (sibling->mergeWith(*thisNode))
+                    {
+                        KeyType newSiblingLargestKey(sibling->largestKey());
+
+                        bool largestChanged = KeyDef::Less()(siblingLargestKey, newSiblingLargestKey);
+
+                        if (largestChanged)
+                        {
+                            this->updateLargestKey(siblingLargestKey, newSiblingLargestKey);
+                        }
+
+                        --level; // go up to parent level
+                        if (level < 0)
+                        {
+                            break;
+                        }
+                        auto parentNode = this->nodes[level];
+                        FileLocation loc;
+                        parentNode->remove(largestKey, loc);
+                        underflow = parentNode->isUnderflow();
+
+                        thisNode = parentNode;
+                    }
+                    else
+                    {
+                        assert(false);
+                    }
                 }
+                if (level >= 0)
+                {
+                    return true;// remove complete
+                }
+
+                //TODO: split or merge root
             }
             return true;
         }
@@ -333,6 +381,18 @@ private:
         if (newLoc != *node.getFileLocation())
         {
             throw IndexLocationChanged("Can't store a node");
+        }
+    }
+
+    void updateLargestKey(const KeyType& oldKey, const KeyType& newKey)
+    {
+        for (size_t i = 0; i < this->height - 1; ++i)
+        {
+            this->nodes[i]->updateKey(oldKey, newKey);
+            if (i > 0)
+            {
+                this->store(*this->nodes[i]);
+            }
         }
     }
 

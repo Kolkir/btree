@@ -41,16 +41,33 @@ public:
         return this->index.size() >= this->maxKeysCount;
     }
 
-    bool isUnderfow() const
+    bool isUnderflow() const
     {
         return this->index.size() <= this->minKeysCount;
     }
 
-    bool canMergeWith(const BTreeNode& node)
+    bool mergeWith(const BTreeNode& node)
     {
-        return (this->index.size() + node.index.size() <= this->maxKeysCount)
+        //TODO: merge
+        return false;
     }
 
+    bool takeFrom(const BTreeNode& node)
+    {
+        if (!node.isUnderfow())
+        {
+            auto leftCount = (node.index.size() - node.minKeysCount) / 2;
+            if (leftCount > 0)
+            {
+                if ((this->index.size() + leftCount) < this->maxKeysCount)
+                {
+                    //TODO: take
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     void insert(const KeyType& key, const FileLocation& loc)
     {
