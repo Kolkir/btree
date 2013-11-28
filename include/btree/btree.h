@@ -366,6 +366,17 @@ private:
         return this->nodes.back();
     }
 
+    NodePtr getSibling(NodePtr thisNode, int level)
+    {
+        assert(level >= 1);
+        if (level >= 1)
+        {
+            auto parent = this->nodes[level - 1];
+            parent->
+        }
+        return NodePtr();
+    }
+
     NodePtr fetch(const FileLocation& loc)
     {
         NodePtr newNode(new Node(this->order));
