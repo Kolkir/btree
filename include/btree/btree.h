@@ -143,7 +143,7 @@ public:
             thisNode = parentNode;
         }
         this->store(*thisNode);
-        
+
         if (level >= 0)
         {
             return;// insert complete
@@ -186,6 +186,8 @@ public:
                 {
                     this->updateLargestKey(prevLargestKey, newLargestKey);
                 }
+
+                this->store(*thisNode);
             }
             else
             {
@@ -194,7 +196,7 @@ public:
                 {
                     KeyType largestKey(thisNode->largestKey());
 
-                    NodePtr sibling = getSibling(thisNode, level);
+                    NodePtr sibling = getSibling(largestKey, level);
                     assert(sibling);
 
                     KeyType siblingLargestKey(sibling->largestKey());
@@ -220,7 +222,10 @@ public:
                         {
                             this->updateLargestKey(siblingLargestKey, newSiblingLargestKey);
                         }
-                        break; //we need no to propagte changes up
+
+                        // thisNode will be stored later
+                        this->store(*sibling);
+                        break; //we don't need propagte changes to parent nodes
                     }
                     else if (sibling->mergeWith(*thisNode))
                     {
@@ -232,6 +237,7 @@ public:
                         {
                             this->updateLargestKey(siblingLargestKey, newSiblingLargestKey);
                         }
+                        this->store(*sibling);
 
                         --level; // go up to parent level
                         if (level < 0)
@@ -248,14 +254,22 @@ public:
                     else
                     {
                         assert(false);
+                        break;
                     }
                 }
+                this->store(*thisNode);
+
                 if (level >= 0)
                 {
                     return true;// remove complete
                 }
 
-                //TODO: split or merge root
+                //if root have less than one child remove it
+                if (root->size() == 1)
+                {
+                    root = this->nodes[1];
+                    --this->height;
+                }
             }
             return true;
         }
@@ -282,6 +296,7 @@ public:
         std::map<KeyType, KeyNodePtr> children;
     };
 
+    //only for debug and testing
     KeyNodePtr getTreeStructure()
     {
         using namespace std;
@@ -366,13 +381,24 @@ private:
         return this->nodes.back();
     }
 
-    NodePtr getSibling(NodePtr thisNode, int level)
+    NodePtr getSibling(const KeyType& key, int level)
     {
         assert(level >= 1);
-        if (level >= 1)
+        if (level >= 1 && 
+            static_cast<size_t>(level) < this->nodes.size())
         {
             auto parent = this->nodes[level - 1];
-            parent->
+            FileLocation loc;
+            bool getSib = parent->getLeft(key, loc);
+            if (!getSib)
+            {
+                getSib = parent->getRight(key, loc);
+            }
+            if (getSib)
+            {
+                return this->fetch(loc);
+            }
+            assert(false); // there is can't be nodes without siblings except root
         }
         return NodePtr();
     }

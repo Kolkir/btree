@@ -48,20 +48,26 @@ public:
 
     bool mergeWith(const BTreeNode& node)
     {
-        //TODO: merge
+        if (this->size() + node.size() < this->maxKeysCount)
+        {
+            this->index.insert(node.index.begin(), node.index.end());
+            return true;
+        }
         return false;
     }
 
     bool takeFrom(const BTreeNode& node)
     {
-        if (!node.isUnderfow())
+        if (!node.isUnderflow())
         {
             auto leftCount = (node.index.size() - node.minKeysCount) / 2;
             if (leftCount > 0)
             {
                 if ((this->index.size() + leftCount) < this->maxKeysCount)
                 {
-                    //TODO: take
+                    auto end = node.index.begin();
+                    std::advance(end, leftCount);
+                    this->index.insert(node.index.begin(), end);
                     return true;
                 }
             }
@@ -136,8 +142,6 @@ public:
         }
     }
 
-
-
     void searchInexact(const KeyType& key, FileLocation& loc)
     {
         assert(!this->index.empty());
@@ -162,12 +166,42 @@ public:
     {
         if (this->index.empty())
         {
-            return KeyType();
+            assert(false);
+            throw IllegalState("There are can't be empty nodes in the tree");
         }
         else
         {
             return this->index.rbegin()->first;
         }
+    }
+
+    size_t size() const
+    {
+        return this->index.size();
+    }
+
+    bool getLeft(const KeyType& key, FileLocation& loc)
+    {
+        auto i = this->index.find(key);
+        assert(i != this->index.end());
+        if (i != this->index.end() && 
+            i != this->index.begin())
+        {
+            loc = std::prev(i)->second;
+        }
+        return false;
+    }
+
+    bool getRight(const KeyType& key, FileLocation& loc)
+    {
+        auto i = this->index.find(key);
+        assert(i != this->index.end());
+        if (i != this->index.end() &&
+            i != std::prev(this->index.end()))
+        {
+            loc = std::next(i)->second;
+        }
+        return false;
     }
 
     void setFileLocation(const FileLocation& loc)
@@ -180,11 +214,13 @@ public:
         return this->fileLocation.get();
     }
 
+    //only for debug and testing 
     typename MapIndex::const_iterator begin() const
     {
         return this->index.begin();
     }
 
+    //only for debug and testing 
     typename MapIndex::const_iterator end() const
     {
         return this->index.end();

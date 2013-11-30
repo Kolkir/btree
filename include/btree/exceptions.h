@@ -46,6 +46,20 @@ namespace btree
         {
         }
     };
+
+    class IllegalState : public BTreeException
+    {
+    public:
+        explicit IllegalState(const std::string& msg)
+            : BTreeException(msg.c_str())
+        {
+        }
+
+        explicit IllegalState(const char *msg)
+            : BTreeException(msg)
+        {
+        }
+    };
 }
 
 #endif

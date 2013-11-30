@@ -98,4 +98,6 @@ TEST_F(TreeTest, CreateStructure)
         ASSERT_EQ(index, idx);
         ++index;
     }
+
+    tree.remove('A');
 };
