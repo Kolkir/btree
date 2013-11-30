@@ -4,7 +4,7 @@
 #include "treetestfix.h"
 
 
-TEST_F(TreeTest, InsertGet)
+TEST_F(TreeTest, InsertGetTest)
 {
     A a;
     a.x = 123;
@@ -19,12 +19,11 @@ TEST_F(TreeTest, InsertGet)
     auto val = tree.get("Rec1", loc2);
     ASSERT_TRUE(val);
     ASSERT_EQ(loc1, loc2);
-    
-    tree.remove("Rec1");
+
 };
 
 
-TEST_F(TreeTest, CreateStructure)
+TEST_F(TreeTest, CreateStructureTest)
 {
     std::string keys = "CSDTAMPIBWNGURKEHOLJYQZFXV";
     int index = 0;
@@ -98,6 +97,27 @@ TEST_F(TreeTest, CreateStructure)
         ASSERT_EQ(index, idx);
         ++index;
     }
-
-    tree.remove('A');
 };
+
+
+TEST_F(TreeTest, RemoveTest)
+{
+    btree::FileLocation loc;
+    btree::BTree<btree::PodKey<char>> tree(2);
+    tree.create(indexFile);
+    tree.insert('A', loc);
+    tree.insert('C', loc);
+    tree.insert('D', loc);
+
+    tree.remove('D');
+
+    auto rootNode = tree.getTreeStructure();
+
+    ASSERT_EQ(2, rootNode->children.size());
+
+    auto nodeA = rootNode->children.find('A');
+    ASSERT_TRUE(nodeA != rootNode->children.end());
+
+    auto nodeC = rootNode->children.find('C');
+    ASSERT_TRUE(nodeC != rootNode->children.end());
+}

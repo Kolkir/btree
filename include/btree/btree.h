@@ -171,6 +171,11 @@ public:
         {
             KeyType prevLargestKey(thisNode->largestKey());
 
+            NodePtr sibling;
+            if (this->height > 1)
+            {
+                sibling = this->getSibling(prevLargestKey, this->height - 1);
+            }
             thisNode->remove(key, loc);
 
             bool underflow = thisNode->isUnderflow();
@@ -192,11 +197,8 @@ public:
             else
             {
                 int level = this->height - 1;
-                while (underflow)
+                while (underflow && level > 0)
                 {
-                    KeyType largestKey(thisNode->largestKey());
-
-                    NodePtr sibling = getSibling(largestKey, level);
                     assert(sibling);
 
                     KeyType siblingLargestKey(sibling->largestKey());
@@ -207,11 +209,11 @@ public:
                         // if largest key in thisNode was changed update upper nodes
                         KeyType newLargestKey(thisNode->largestKey());
 
-                        bool largestChanged = KeyDef::Less()(largestKey, newLargestKey);
+                        bool largestChanged = KeyDef::Less()(prevLargestKey, newLargestKey);
 
                         if (largestChanged)
                         {
-                            this->updateLargestKey(largestKey, newLargestKey);
+                            this->updateLargestKey(prevLargestKey, newLargestKey);
                         }
 
                         KeyType newSiblingLargestKey(sibling->largestKey());
@@ -240,16 +242,21 @@ public:
                         this->store(*sibling);
 
                         --level; // go up to parent level
-                        if (level < 0)
-                        {
-                            break;
-                        }
-                        auto parentNode = this->nodes[level];
-                        FileLocation loc;
-                        parentNode->remove(largestKey, loc);
-                        underflow = parentNode->isUnderflow();
+                        assert(level >= 0);
+                        thisNode = this->nodes[level];
 
-                        thisNode = parentNode;
+                        if (level > 0)
+                        {
+                            sibling = this->getSibling(thisNode->largestKey(), level);
+                        }
+                        else
+                        {
+                            sibling.reset();
+                        }
+
+                        FileLocation loc;
+                        thisNode->remove(key, loc);
+                        underflow = thisNode->isUnderflow();
                     }
                     else
                     {
@@ -259,15 +266,16 @@ public:
                 }
                 this->store(*thisNode);
 
-                if (level >= 0)
+                if (level > 0)
                 {
                     return true;// remove complete
                 }
 
                 //if root have less than one child remove it
-                if (root->size() == 1)
+                if (root->size() == 1 &&
+                    this->height > 1)
                 {
-                    root = this->nodes[1];
+                    root = this->fetch(root->begin()->second);
                     --this->height;
                 }
             }

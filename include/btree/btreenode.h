@@ -166,8 +166,7 @@ public:
     {
         if (this->index.empty())
         {
-            assert(false);
-            throw IllegalState("There are can't be empty nodes in the tree");
+            return KeyType();
         }
         else
         {
@@ -183,11 +182,11 @@ public:
     bool getLeft(const KeyType& key, FileLocation& loc)
     {
         auto i = this->index.find(key);
-        assert(i != this->index.end());
         if (i != this->index.end() && 
             i != this->index.begin())
         {
             loc = std::prev(i)->second;
+            return true;
         }
         return false;
     }
@@ -195,11 +194,11 @@ public:
     bool getRight(const KeyType& key, FileLocation& loc)
     {
         auto i = this->index.find(key);
-        assert(i != this->index.end());
         if (i != this->index.end() &&
             i != std::prev(this->index.end()))
         {
             loc = std::next(i)->second;
+            return true;
         }
         return false;
     }
@@ -213,14 +212,12 @@ public:
     {
         return this->fileLocation.get();
     }
-
-    //only for debug and testing 
+ 
     typename MapIndex::const_iterator begin() const
     {
         return this->index.begin();
     }
-
-    //only for debug and testing 
+ 
     typename MapIndex::const_iterator end() const
     {
         return this->index.end();
