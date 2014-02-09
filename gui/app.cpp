@@ -40,6 +40,12 @@ void Application::open(const std::string& fname, bool create)
 {
     try
     {
+        if (create)
+        {
+            std::ofstream data(fname, std::ios::binary);
+            std::ofstream index(fname + ".idx", std::ios::binary);
+        }
+
         this->dataFileStream.open(fname, std::ios::in | std::ios::out | std::ios::binary);
         if (this->dataFileStream)
         {
@@ -116,5 +122,14 @@ Application::TreeType::KeyNodePtr Application::getTreeStructure()
     {
         return TreeType::KeyNodePtr();
     }
+}
+
+size_t Application::getTreeHeight() const
+{
+    if (this->tree)
+    {
+        return tree->getHeight();
+    }
+    return 0;
 }
 

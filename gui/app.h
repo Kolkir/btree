@@ -25,6 +25,7 @@ public:
     void clearItems();
 
     TreeType::KeyNodePtr getTreeStructure();
+    size_t getTreeHeight() const;
 
 private:
     Application(const Application&);

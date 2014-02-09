@@ -5,6 +5,7 @@
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
 
+#include <sstream>
 #include <string>
 
 Canvas::Canvas(int x, int y, int w, int h)
@@ -17,9 +18,37 @@ void Canvas::draw()
     BtreeGUI* ui = reinterpret_cast<BtreeGUI*>(this->window()->user_data());
     if (ui != nullptr)
     {
+        int margin = 20;
+        int rect_margin = 6;
+
+        auto treeHeight = ui->app.getTreeHeight();
+
         auto root = ui->app.getTreeStructure();
         if (root)
         {
+            std::stringstream buf;
+            std::for_each(root->children.begin(), root->children.end(),
+                [&buf](decltype(*root->children.begin())& node)
+            {
+                buf << node.first << "; ";
+            });
+            auto str = buf.str();
+            fl_color(0);
+            fl_font(FL_HELVETICA, 16);
+
+            int dx = 0;
+            int dy = 0;
+            int tw = 0;
+            int th = 0;
+
+            fl_text_extents(str.c_str(), dx, dy, tw, th);
+
+            int tx = x() + w() / 2 + margin;
+            int ty = y() + rect_margin + margin;
+
+            fl_draw(str.c_str(), tx, ty);
+
+            fl_rect(tx + dx - rect_margin/2, ty + dy - rect_margin/2, tw + rect_margin, th + rect_margin);
             //TODO: draw
         }
     }
@@ -135,10 +164,10 @@ void OnFileNewMenu(Fl_Menu_* m, void*)
         if (chooser.count() >= 1)
         {
             std::string path = chooser.value();
-            const char* fname = fl_filename_name(path.c_str());
-            path.resize(fname - &path[0]);
+            std::string fname = fl_filename_name(path.c_str());
+            path.resize(path.size() - fname.size());
             ui->app.setWorkDir(path);
-            ui->app.makeNewTree(fname);
+            ui->app.makeNewTree(chooser.value());
             ui->mainWindow->redraw();
         }
     }
@@ -164,10 +193,10 @@ void OnFileOpenMenu(Fl_Menu_* m, void*)
         if (chooser.count() >= 1)
         {
             std::string path = chooser.value();
-            const char* fname = fl_filename_name(path.c_str());
-            path.resize(fname - &path[0]);
+            std::string fname = fl_filename_name(path.c_str());
+            path.resize(path.size() - fname.size());
             ui->app.setWorkDir(path);
-            ui->app.openTree(fname);
+            ui->app.openTree(chooser.value());
             ui->mainWindow->redraw();
         }
     }
