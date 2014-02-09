@@ -6,7 +6,8 @@ include_directories("${PROJECT_SOURCE_DIR}/3rdparty/gtest/")
 set(TESTS_SOURCES
     bnode_test.cpp
     btree_test.cpp
-    recfile_test.cpp)    
+    recfile_test.cpp
+    treetestfix.h)
 
 set(GTEST_SOURCES
     ${PROJECT_SOURCE_DIR}/3rdparty/gtest/src/gtest-all.cc

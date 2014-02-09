@@ -1,6 +1,8 @@
 #ifndef _GUI_H_
 #define _GUI_H_
 
+#include "app.h"
+
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Menu_Bar.H>
@@ -45,16 +47,11 @@ public:
     Fl_Scroll *imageScroll;
     Canvas *imageBox;
 
-    std::string workDir;
-
-    bool isAnimation;
+    Application app;
 
 private:
     BtreeGUI(const BtreeGUI&);
     BtreeGUI& operator=(const BtreeGUI&);
-
-private:
-
 };
 
 #endif

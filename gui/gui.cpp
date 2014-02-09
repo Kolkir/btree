@@ -98,7 +98,7 @@ void BtreeGUI::Show(int argc, char** argv)
         std::string path = argv[0];
         const char* fname = fl_filename_name(path.c_str());
         path.resize(fname - &path[0]);
-        this->workDir = path;
+        this->app.setWorkDir(path);
     }
     this->mainWindow->show(argc, argv);
 }
@@ -107,19 +107,15 @@ void BtreeGUI::Show(int argc, char** argv)
 //event handlers implementations
 namespace
 {
-void OnFileNewMenu(Fl_Menu_*, void*)
-{
-}
-
-void OnFileOpenMenu(Fl_Menu_* m, void*)
+void OnFileNewMenu(Fl_Menu_* m, void*)
 {
     BtreeGUI* ui = reinterpret_cast<BtreeGUI*>(m->window()->user_data());
-    if (ui != 0)
+    if (ui != nullptr)
     {
-        Fl_File_Chooser chooser(ui->workDir.c_str(),
+        Fl_File_Chooser chooser(ui->app.getWorkDir().c_str(),
             "Tree Files (*.{itr})",
-            Fl_File_Chooser::SINGLE,
-            "Open image");
+            Fl_File_Chooser::CREATE,
+            "New tree");
 
         chooser.show();
 
@@ -133,8 +129,38 @@ void OnFileOpenMenu(Fl_Menu_* m, void*)
             std::string path = chooser.value();
             const char* fname = fl_filename_name(path.c_str());
             path.resize(fname - &path[0]);
-            ui->workDir = path;
+            ui->app.setWorkDir(path);
+            ui->app.makeNewTree(fname);
+            ui->mainWindow->redraw();
+        }
+    }
+}
 
+void OnFileOpenMenu(Fl_Menu_* m, void*)
+{
+    BtreeGUI* ui = reinterpret_cast<BtreeGUI*>(m->window()->user_data());
+    if (ui != nullptr)
+    {
+        Fl_File_Chooser chooser(ui->app.getWorkDir().c_str(),
+            "Tree Files (*.{itr})",
+            Fl_File_Chooser::SINGLE,
+            "Open tree");
+
+        chooser.show();
+
+        while (chooser.shown())
+        {
+            Fl::wait();
+        }
+
+        if (chooser.count() >= 1)
+        {
+            std::string path = chooser.value();
+            const char* fname = fl_filename_name(path.c_str());
+            path.resize(fname - &path[0]);
+            ui->app.setWorkDir(path);
+            ui->app.openTree(fname);
+            ui->mainWindow->redraw();
         }
     }
 }
@@ -144,15 +170,33 @@ void OnQuit(Fl_Menu_* m, void*)
     m->window()->hide();
 }
 
-void OnAddItem(Fl_Button*, void*)
+void OnAddItem(Fl_Button* b, void*)
 {
+    BtreeGUI* ui = reinterpret_cast<BtreeGUI*>(b->window()->user_data());
+    if (ui != nullptr)
+    {
+        ui->app.addItem(static_cast<unsigned int>(ui->itemIn->value()));
+        ui->mainWindow->redraw();
+    }
 }
 
-void OnDelItem(Fl_Button*, void*)
+void OnDelItem(Fl_Button* b, void*)
 {
+    BtreeGUI* ui = reinterpret_cast<BtreeGUI*>(b->window()->user_data());
+    if (ui != nullptr)
+    {
+        ui->app.delItem(static_cast<unsigned int>(ui->itemIn->value()));
+        ui->mainWindow->redraw();
+    }
 }
 
-void OnClear(Fl_Button*, void*)
+void OnClear(Fl_Button* b, void*)
 {
+    BtreeGUI* ui = reinterpret_cast<BtreeGUI*>(b->window()->user_data());
+    if (ui != nullptr)
+    {
+        ui->app.clearItems();
+        ui->mainWindow->redraw();
+    }
 }
 }
