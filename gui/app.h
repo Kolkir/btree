@@ -10,6 +10,8 @@
 class Application
 {
 public:
+    typedef btree::BTree <btree::PodKey<unsigned int> > TreeType;
+
     Application();
 
     const std::string& getWorkDir() const;
@@ -21,6 +23,8 @@ public:
     void addItem(unsigned int val);
     void delItem(unsigned int val);
     void clearItems();
+
+    TreeType::KeyNodePtr getTreeStructure();
 
 private:
     Application(const Application&);
@@ -34,7 +38,6 @@ private:
     std::fstream dataFileStream;
     std::unique_ptr<btree::RecordFile> dataFile;
     std::fstream indexFileStream;
-    typedef btree::BTree <btree::PodKey<unsigned int> > TreeType;
     std::unique_ptr<TreeType> tree;
 };
 

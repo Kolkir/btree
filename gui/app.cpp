@@ -106,3 +106,15 @@ void Application::clearItems()
     }
 }
 
+Application::TreeType::KeyNodePtr Application::getTreeStructure()
+{
+    if (this->tree)
+    {
+        return this->tree->getTreeStructure();
+    }
+    else
+    {
+        return TreeType::KeyNodePtr();
+    }
+}
+

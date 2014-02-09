@@ -14,7 +14,15 @@ Canvas::Canvas(int x, int y, int w, int h)
 
 void Canvas::draw()
 {
-
+    BtreeGUI* ui = reinterpret_cast<BtreeGUI*>(this->window()->user_data());
+    if (ui != nullptr)
+    {
+        auto root = ui->app.getTreeStructure();
+        if (root)
+        {
+            //TODO: draw
+        }
+    }
 }
 
 //event handlers decalrations
