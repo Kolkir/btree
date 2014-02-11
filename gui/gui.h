@@ -25,6 +25,8 @@ public:
     Canvas(int x, int y, int w, int h);
     virtual void draw();
 private:
+
+    void drawNode(const Application::TreeType::KeyNodePtr& node, int nodeWidth, int nodeHeight, int xpos, int ypos);
 };
 
 class BtreeGUI

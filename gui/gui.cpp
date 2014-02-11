@@ -7,10 +7,44 @@
 
 #include <sstream>
 #include <string>
+#include <vector>
+
+namespace
+{
+    int rect_margin = 6;
+}
 
 Canvas::Canvas(int x, int y, int w, int h)
     : Fl_Widget(x, y, w, h)
 {
+}
+
+void Canvas::drawNode(const Application::TreeType::KeyNodePtr& node, int nodeWidth, int nodeHeight, int xpos, int ypos)
+{
+    std::stringstream buf;
+    std::for_each(node->children.begin(), node->children.end(),
+        [&buf](decltype(*node->children.begin())& node)
+    {
+        buf << node.first << "; ";
+    });
+    auto str = buf.str();
+
+    int dx = 0;
+    int dy = 0;
+    int tw = 0;
+    int th = 0;
+
+    fl_text_extents(str.c_str(), dx, dy, tw, th);
+
+    int tx = x() - dx + xpos + rect_margin;
+    int ty = y() - dy + ypos + rect_margin;
+
+    fl_draw(str.c_str(), tx, ty);
+
+    fl_rect(x() + xpos,
+            y() + ypos,
+            nodeWidth,
+            nodeHeight);
 }
 
 void Canvas::draw()
@@ -18,38 +52,80 @@ void Canvas::draw()
     BtreeGUI* ui = reinterpret_cast<BtreeGUI*>(this->window()->user_data());
     if (ui != nullptr)
     {
-        int margin = 20;
-        int rect_margin = 6;
+        auto root = ui->app.getTreeStructure();
+        if (!root)
+        {
+            return;
+        }
+
+        fl_color(0);
+        fl_font(FL_HELVETICA, 16);
+
+        int dx = 0;
+        int dy = 0;
+        int nodeWidth = 0;
+        int nodeHeight = 0;
+        int nodeSpace = 20;
+
+        fl_text_extents("9999;9999;9999;9999", dx, dy, nodeWidth, nodeHeight);
+
+        nodeWidth += rect_margin * 2;
+        nodeHeight += rect_margin * 2;
 
         auto treeHeight = ui->app.getTreeHeight();
+        auto treeOrder = ui->app.getTreeOrder();
 
-        auto root = ui->app.getTreeStructure();
-        if (root)
+        std::vector<decltype(root)> children;
+        children.push_back(root);
+        std::vector<decltype(root)> nextLevelChildren;
+
+        size_t level = 0;
+
+        while (!children.empty())
         {
-            std::stringstream buf;
-            std::for_each(root->children.begin(), root->children.end(),
-                [&buf](decltype(*root->children.begin())& node)
+            nextLevelChildren.clear();
+
+            size_t posOnLevel = 0;
+            size_t maxLevel = 0;
+            if (treeHeight > 0)
             {
-                buf << node.first << "; ";
+                maxLevel = treeHeight - 1;
+            }
+            auto power = maxLevel - level;
+            auto subTreeNodes = static_cast<size_t>(std::pow(treeOrder, power));
+
+            std::for_each(children.begin(), children.end(),
+                [&](const Application::TreeType::KeyNodePtr& node)
+            {
+                auto nodesBefore = posOnLevel * subTreeNodes + subTreeNodes / 2;
+
+                int parentShift = 0;
+
+                std::for_each(node->children.begin(), node->children.end(),
+                    [&](decltype(*node->children.begin())& cnode)
+                {
+                    if (!cnode.second->children.empty())
+                    {
+                        nextLevelChildren.push_back(cnode.second);
+                    }
+                });
+
+                if (!nextLevelChildren.empty())
+                {
+                    parentShift = nodeWidth / 2 + nodeSpace / 2;
+                }
+
+                drawNode(node, 
+                         nodeWidth,
+                         nodeHeight,
+                         nodeSpace + nodesBefore * (nodeWidth + nodeSpace) - parentShift,
+                         nodeSpace + level * (nodeHeight + nodeSpace));
+
+                ++posOnLevel;
             });
-            auto str = buf.str();
-            fl_color(0);
-            fl_font(FL_HELVETICA, 16);
 
-            int dx = 0;
-            int dy = 0;
-            int tw = 0;
-            int th = 0;
-
-            fl_text_extents(str.c_str(), dx, dy, tw, th);
-
-            int tx = x() + w() / 2 + margin;
-            int ty = y() + rect_margin + margin;
-
-            fl_draw(str.c_str(), tx, ty);
-
-            fl_rect(tx + dx - rect_margin/2, ty + dy - rect_margin/2, tw + rect_margin, th + rect_margin);
-            //TODO: draw
+            std::swap(nextLevelChildren, children);
+            ++level;
         }
     }
 }
@@ -116,10 +192,10 @@ BtreeGUI::BtreeGUI()
         o->end();//group
     }
     { 
-        this->imageScroll = new Fl_Scroll(0, 50, 800, 550);
+        this->imageScroll = new Fl_Scroll(0, 55, 800, 550);
         this->imageScroll->box(FL_DOWN_BOX);
         { 
-            this->imageBox = new Canvas(0, 50, 800, 550);
+            this->imageBox = new Canvas(0, 55, 800, 550);
         }
         this->imageScroll->end();
     } //imageScroll

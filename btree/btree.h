@@ -86,6 +86,7 @@ public:
 
     void save()
     {
+        this->store(*this->root);
         detail::BTreeFileHeader header;
         header.height = this->height;
         header.rootNodeLocation = *this->root->getFileLocation();

@@ -50,7 +50,6 @@ public:
         if (size <= loc.getMaxSize())
         {
             this->stream.seekp(loc.getAddr(), std::ios::beg);
-            size += sizeof(size);
             this->stream.pack(0, size); //owerwite with real record size
             this->stream.flushPack();
             return loc;
@@ -60,7 +59,6 @@ public:
             //append
             this->stream.seekp(0, std::ios::end);
             auto pos = this->stream.tellp();
-            size += sizeof(size);
             this->stream.pack(0, size);  //owerwite with real record size
             this->stream.flushPack();
 

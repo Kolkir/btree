@@ -6,6 +6,11 @@ Application::Application()
 {
 }
 
+Application::~Application()
+{
+    this->close();
+}
+
 void Application::close()
 {
     this->dataFile.reset();
@@ -131,5 +136,10 @@ size_t Application::getTreeHeight() const
         return tree->getHeight();
     }
     return 0;
+}
+
+size_t Application::getTreeOrder() const
+{
+    return BTREE_ORDER;
 }
 

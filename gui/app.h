@@ -13,6 +13,7 @@ public:
     typedef btree::BTree <btree::PodKey<unsigned int> > TreeType;
 
     Application();
+    ~Application();
 
     const std::string& getWorkDir() const;
     void setWorkDir(const std::string& dir);
@@ -26,6 +27,7 @@ public:
 
     TreeType::KeyNodePtr getTreeStructure();
     size_t getTreeHeight() const;
+    size_t getTreeOrder() const;
 
 private:
     Application(const Application&);
