@@ -16,10 +16,12 @@ namespace
 
 Canvas::Canvas(int x, int y, int w, int h)
     : Fl_Widget(x, y, w, h)
+    , nodeSpace(20)
+
 {
 }
 
-void Canvas::drawNode(const Application::TreeType::KeyNodePtr& node, int nodeWidth, int nodeHeight, int xpos, int ypos)
+void Canvas::drawNode(const Application::TreeType::KeyNodePtr& node, int xpos, int ypos)
 {
     std::stringstream buf;
     std::for_each(node->children.begin(), node->children.end(),
@@ -47,6 +49,36 @@ void Canvas::drawNode(const Application::TreeType::KeyNodePtr& node, int nodeWid
             nodeHeight);
 }
 
+size_t Canvas::drawNodeRec(size_t treeHeight, const Application::TreeType::KeyNodePtr& node, size_t level, int rightShift)
+{
+    if (level < treeHeight)
+    {
+        size_t childrenWidth = 0;
+        size_t internalRightShift = rightShift;
+        std::for_each(node->children.begin(), node->children.end(),
+            [&](decltype(*node->children.begin())& cnode)
+        {
+            auto width = drawNodeRec(treeHeight, cnode.second, level + 1, internalRightShift);
+            childrenWidth += width + nodeSpace;
+            internalRightShift += width + nodeSpace;
+        });
+
+        drawNode(node,
+            rightShift + childrenWidth / 2 - nodeWidth / 2 - nodeSpace / 2,
+            nodeSpace + (level - 1) * (nodeHeight + nodeSpace));
+
+        return childrenWidth;
+    }
+    else
+    {
+        drawNode(node,
+            rightShift,
+            nodeSpace + (level - 1) * (nodeHeight + nodeSpace));
+        return nodeWidth;
+    }
+
+}
+
 void Canvas::draw()
 {
     BtreeGUI* ui = reinterpret_cast<BtreeGUI*>(this->window()->user_data());
@@ -63,70 +95,15 @@ void Canvas::draw()
 
         int dx = 0;
         int dy = 0;
-        int nodeWidth = 0;
-        int nodeHeight = 0;
-        int nodeSpace = 20;
+        nodeWidth = 0;
+        nodeHeight = 0;
 
         fl_text_extents("9999;9999;9999;9999", dx, dy, nodeWidth, nodeHeight);
 
         nodeWidth += rect_margin * 2;
         nodeHeight += rect_margin * 2;
 
-        auto treeHeight = ui->app.getTreeHeight();
-        auto treeOrder = ui->app.getTreeOrder();
-
-        std::vector<decltype(root)> children;
-        children.push_back(root);
-        std::vector<decltype(root)> nextLevelChildren;
-
-        size_t level = 0;
-
-        while (!children.empty())
-        {
-            nextLevelChildren.clear();
-
-            size_t posOnLevel = 0;
-            size_t maxLevel = 0;
-            if (treeHeight > 0)
-            {
-                maxLevel = treeHeight - 1;
-            }
-            auto power = maxLevel - level;
-            auto subTreeNodes = static_cast<size_t>(std::pow(treeOrder, power));
-
-            std::for_each(children.begin(), children.end(),
-                [&](const Application::TreeType::KeyNodePtr& node)
-            {
-                auto nodesBefore = posOnLevel * subTreeNodes + subTreeNodes / 2;
-
-                int parentShift = 0;
-
-                std::for_each(node->children.begin(), node->children.end(),
-                    [&](decltype(*node->children.begin())& cnode)
-                {
-                    if (!cnode.second->children.empty())
-                    {
-                        nextLevelChildren.push_back(cnode.second);
-                    }
-                });
-
-                if (!nextLevelChildren.empty())
-                {
-                    parentShift = nodeWidth / 2 + nodeSpace / 2;
-                }
-
-                drawNode(node, 
-                         nodeWidth,
-                         nodeHeight,
-                         nodeSpace + nodesBefore * (nodeWidth + nodeSpace) - parentShift,
-                         nodeSpace + level * (nodeHeight + nodeSpace));
-
-                ++posOnLevel;
-            });
-
-            std::swap(nextLevelChildren, children);
-            ++level;
-        }
+        drawNodeRec(ui->app.getTreeHeight(), root, 1, nodeSpace);
     }
 }
 

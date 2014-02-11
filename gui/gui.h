@@ -25,8 +25,13 @@ public:
     Canvas(int x, int y, int w, int h);
     virtual void draw();
 private:
+    size_t drawNodeRec(size_t treeHeight, const Application::TreeType::KeyNodePtr& node, size_t level, int rightShift);
+    void drawNode(const Application::TreeType::KeyNodePtr& node, int xpos, int ypos);
+private:
+    int nodeWidth;
+    int nodeHeight;
+    int nodeSpace;
 
-    void drawNode(const Application::TreeType::KeyNodePtr& node, int nodeWidth, int nodeHeight, int xpos, int ypos);
 };
 
 class BtreeGUI
