@@ -19,13 +19,25 @@
 #include <string>
 #include <memory>
 
+struct ChildrenPoints
+{
+    ChildrenPoints(size_t s, size_t e, size_t rs)
+        : start(s)
+        , end(e)
+        , shift(rs)
+    {}
+    size_t start;
+    size_t end;
+    size_t shift;
+};
+
 class Canvas : public Fl_Widget
 {
 public:
     Canvas(int x, int y, int w, int h);
     virtual void draw();
 private:
-    size_t drawNodeRec(size_t treeHeight, const Application::TreeType::KeyNodePtr& node, size_t level, int rightShift);
+    ChildrenPoints drawNodeRec(size_t treeHeight, const Application::TreeType::KeyNodePtr& node, size_t level, int rightShift);
     void drawNode(const Application::TreeType::KeyNodePtr& node, int xpos, int ypos);
 private:
     int nodeWidth;

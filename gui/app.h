@@ -42,6 +42,7 @@ private:
     std::unique_ptr<btree::RecordFile> dataFile;
     std::fstream indexFileStream;
     std::unique_ptr<TreeType> tree;
+    std::string fname;
 };
 
 #endif

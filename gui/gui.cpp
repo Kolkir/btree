@@ -30,6 +30,7 @@ void Canvas::drawNode(const Application::TreeType::KeyNodePtr& node, int xpos, i
         buf << node.first << "; ";
     });
     auto str = buf.str();
+    str.resize(str.size() - 1);
 
     int dx = 0;
     int dy = 0;
@@ -38,7 +39,7 @@ void Canvas::drawNode(const Application::TreeType::KeyNodePtr& node, int xpos, i
 
     fl_text_extents(str.c_str(), dx, dy, tw, th);
 
-    int tx = x() - dx + xpos + rect_margin;
+    int tx = x() - dx + xpos + rect_margin + (nodeWidth - tw) / 2;
     int ty = y() - dy + ypos + rect_margin;
 
     fl_draw(str.c_str(), tx, ty);
@@ -49,32 +50,36 @@ void Canvas::drawNode(const Application::TreeType::KeyNodePtr& node, int xpos, i
             nodeHeight);
 }
 
-size_t Canvas::drawNodeRec(size_t treeHeight, const Application::TreeType::KeyNodePtr& node, size_t level, int rightShift)
+ChildrenPoints Canvas::drawNodeRec(size_t treeHeight, const Application::TreeType::KeyNodePtr& node, size_t level, int rightShift)
 {
     if (level < treeHeight)
     {
-        size_t childrenWidth = 0;
+        size_t childrenStart = std::numeric_limits<size_t>::max();
+        size_t childrenEnd = 0;
         size_t internalRightShift = rightShift;
+
         std::for_each(node->children.begin(), node->children.end(),
             [&](decltype(*node->children.begin())& cnode)
         {
-            auto width = drawNodeRec(treeHeight, cnode.second, level + 1, internalRightShift);
-            childrenWidth += width + nodeSpace;
-            internalRightShift += width + nodeSpace;
+            auto points = drawNodeRec(treeHeight, cnode.second, level + 1, internalRightShift);
+            internalRightShift = points.shift;
+            childrenStart = std::min(childrenStart, points.start);
+            childrenEnd = std::max(childrenEnd, points.end);
         });
 
+        size_t nodeStart = childrenStart + (childrenEnd - childrenStart) / 2 - nodeWidth / 2;
         drawNode(node,
-            rightShift + childrenWidth / 2 - nodeWidth / 2 - nodeSpace / 2,
+            nodeStart,
             nodeSpace + (level - 1) * (nodeHeight + nodeSpace));
 
-        return childrenWidth;
+        return ChildrenPoints(nodeStart, nodeStart + nodeWidth, internalRightShift + nodeSpace * 2);
     }
     else
     {
         drawNode(node,
             rightShift,
             nodeSpace + (level - 1) * (nodeHeight + nodeSpace));
-        return nodeWidth;
+        return ChildrenPoints(rightShift, rightShift + nodeWidth, rightShift + nodeWidth + nodeSpace);
     }
 
 }
@@ -98,7 +103,7 @@ void Canvas::draw()
         nodeWidth = 0;
         nodeHeight = 0;
 
-        fl_text_extents("9999;9999;9999;9999", dx, dy, nodeWidth, nodeHeight);
+        fl_text_extents("9999; 9999; 9999; 9999", dx, dy, nodeWidth, nodeHeight);
 
         nodeWidth += rect_margin * 2;
         nodeHeight += rect_margin * 2;

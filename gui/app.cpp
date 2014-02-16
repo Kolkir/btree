@@ -13,6 +13,11 @@ Application::~Application()
 
 void Application::close()
 {
+    if (this->tree)
+    {
+        this->tree->save();
+    }
+
     this->dataFile.reset();
     this->tree.reset();
     this->dataFileStream.close();
@@ -31,12 +36,14 @@ void Application::setWorkDir(const std::string& dir)
 
 void Application::openTree(const std::string& fname)
 {
+    this->fname = fname;
     this->close();
     this->open(fname, false);
 }
 
 void Application::makeNewTree(const std::string& fname)
 {
+    this->fname = fname;
     close();
     this->open(fname, true);
 }
@@ -105,15 +112,10 @@ void Application::delItem(unsigned int val)
 
 void Application::clearItems()
 {
-    if (this->dataFile && this->tree)
+    if (!this->fname.empty())
     {
-        this->dataFileStream.seekp(0);
-        this->dataFileStream.seekg(0);
-        this->dataFile = std::make_unique<btree::RecordFile>(this->dataFileStream);
-
-        this->indexFileStream.seekp(0);
-        this->indexFileStream.seekg(0);
-        this->tree->create(this->indexFileStream);
+        this->close();
+        this->open(this->fname, true);
     }
 }
 
