@@ -21,10 +21,14 @@ namespace
             if (ui != nullptr)
             {
                 ui->errMsg = msg;
-                int res = fl_ask(msg);
-                if (res == 1)
+                int res = fl_choice(msg, "Terminate", "ReThrow", "Ignore");
+                if (res == 0)
                 {
                     std::terminate();
+                }
+                else if (res == 1)
+                {
+                    throw;
                 }
                 else
                 {
@@ -78,7 +82,10 @@ void Canvas::drawNode(const Application::TreeType::KeyNodePtr& node, int xpos, i
         buf << node.first << "; ";
     });
     auto str = buf.str();
-    str.resize(str.size() - 1);
+    if (!str.empty())
+    {
+        str.resize(str.size() - 1);
+    }
 
     int dx = 0;
     int dy = 0;
@@ -100,7 +107,7 @@ void Canvas::drawNode(const Application::TreeType::KeyNodePtr& node, int xpos, i
     fl_line(x() + xpos + nodeWidth / 2,
             y() + ypos,
             x() + xpos + nodeWidth / 2,
-            y() + ypos - nodeHeight / 2);
+            y() + ypos - nodeSpace / 2);
 }
 
 ChildrenPoints Canvas::drawNodeRec(size_t treeHeight, const Application::TreeType::KeyNodePtr& node, size_t level, int rightShift)
@@ -121,9 +128,15 @@ ChildrenPoints Canvas::drawNodeRec(size_t treeHeight, const Application::TreeTyp
         });
 
         size_t nodeStart = childrenStart + (childrenEnd - childrenStart) / 2 - nodeWidth / 2;
+        size_t ypos = nodeSpace + (level - 1) * (nodeHeight + nodeSpace);
         drawNode(node,
             nodeStart,
-            nodeSpace + (level - 1) * (nodeHeight + nodeSpace));
+            ypos);
+
+        fl_line(x() + nodeStart,
+                y() + ypos + nodeHeight + nodeSpace / 2,
+                x() + nodeStart + nodeWidth,
+                y() + ypos + nodeHeight + nodeSpace / 2);
 
         return ChildrenPoints(nodeStart, nodeStart + nodeWidth, internalRightShift + nodeSpace * 2);
     }
