@@ -12,6 +12,54 @@
 namespace
 {
     int rect_margin = 6;
+
+    template <class Callable>
+    void handleException(Fl_Window* window, Callable&& func)
+    {
+        auto processError = [&](BtreeGUI* ui, const char* msg)
+        {
+            if (ui != nullptr)
+            {
+                ui->errMsg = msg;
+                int res = fl_ask(msg);
+                if (res == 1)
+                {
+                    std::terminate();
+                }
+                else
+                {
+                    ui->errMsg.clear();
+                }
+            }
+            else
+            {
+                throw;
+            }
+        };
+
+        BtreeGUI* ui = nullptr;
+        if (window != nullptr)
+        {
+            ui = reinterpret_cast<BtreeGUI*>(window->user_data());
+        }
+
+        try
+        {
+            if (ui == nullptr ||
+                ui->errMsg.empty())
+            {
+                func(ui);
+            }
+        }
+        catch (std::exception& ex)
+        {
+            processError(ui, ex.what());
+        }
+        catch (...)
+        {
+            processError(ui, "Unknown error");
+        }
+    }
 }
 
 Canvas::Canvas(int x, int y, int w, int h)
@@ -48,6 +96,11 @@ void Canvas::drawNode(const Application::TreeType::KeyNodePtr& node, int xpos, i
             y() + ypos,
             nodeWidth,
             nodeHeight);
+
+    fl_line(x() + xpos + nodeWidth / 2,
+            y() + ypos,
+            x() + xpos + nodeWidth / 2,
+            y() + ypos - nodeHeight / 2);
 }
 
 ChildrenPoints Canvas::drawNodeRec(size_t treeHeight, const Application::TreeType::KeyNodePtr& node, size_t level, int rightShift)
@@ -86,30 +139,42 @@ ChildrenPoints Canvas::drawNodeRec(size_t treeHeight, const Application::TreeTyp
 
 void Canvas::draw()
 {
-    BtreeGUI* ui = reinterpret_cast<BtreeGUI*>(this->window()->user_data());
-    if (ui != nullptr)
+    handleException(this->window(), [&](BtreeGUI* ui)
     {
-        auto root = ui->app.getTreeStructure();
-        if (!root)
+        if (ui != nullptr)
         {
-            return;
+            auto root = ui->app.getTreeStructure();
+            if (!root)
+            {
+                return;
+            }
+
+            fl_color(0);
+            fl_font(FL_HELVETICA, 16);
+
+            int dx = 0;
+            int dy = 0;
+            nodeWidth = 0;
+            nodeHeight = 0;
+
+            fl_text_extents("9999; 9999; 9999; 9999", dx, dy, nodeWidth, nodeHeight);
+
+            nodeWidth += rect_margin * 2;
+            nodeHeight += rect_margin * 2;
+
+            drawNodeRec(ui->app.getTreeHeight(), root, 1, nodeSpace);
         }
+    });
+}
 
-        fl_color(0);
-        fl_font(FL_HELVETICA, 16);
+MainWindow::MainWindow(int width, int height, const char* name)
+    : Fl_Double_Window(width, height, name)
+{
+}
 
-        int dx = 0;
-        int dy = 0;
-        nodeWidth = 0;
-        nodeHeight = 0;
-
-        fl_text_extents("9999; 9999; 9999; 9999", dx, dy, nodeWidth, nodeHeight);
-
-        nodeWidth += rect_margin * 2;
-        nodeHeight += rect_margin * 2;
-
-        drawNodeRec(ui->app.getTreeHeight(), root, 1, nodeSpace);
-    }
+int MainWindow::handle(int event)
+{
+    return Fl_Double_Window::handle(event);
 }
 
 //event handlers decalrations
@@ -135,7 +200,7 @@ Fl_Menu_Item BtreeGUI::menu[] =
 
 BtreeGUI::BtreeGUI()
 {
-    this->mainWindow = new Fl_Double_Window(800, 600, "Btree Visualization");
+    this->mainWindow = new MainWindow(800, 600, "Btree Visualization");
     this->mainWindow->size_range(640, 480);
 
     this->mainWindow->user_data((void*) (this));
@@ -145,7 +210,7 @@ BtreeGUI::BtreeGUI()
     }
 
     {
-        Fl_Group* o = new Fl_Group(0, 20, 800, 35);
+        Fl_Group* o = new Fl_Group(0, 20, 800, 75);
         o->box(FL_DOWN_BOX);
         o->color((Fl_Color) 19);
         {
@@ -170,14 +235,20 @@ BtreeGUI::BtreeGUI()
 
             this->clearBtn = new Fl_Button(left, 25, 60, 25, "Clear all");
             this->clearBtn->callback((Fl_Callback*) OnClear);
+            
+            this->creationOrder = new Fl_Text_Display(120, 55, 250, 25, "Creation Order");
+            this->creationOrder->align(FL_ALIGN_LEFT);
+
+            this->textTree = new Fl_Text_Display(450, 55, 250, 25, "Text Tree");
+            this->textTree->align(FL_ALIGN_LEFT);
         }
         o->end();//group
     }
     { 
-        this->imageScroll = new Fl_Scroll(0, 55, 800, 550);
+        this->imageScroll = new Fl_Scroll(0, 85, 800, 515);
         this->imageScroll->box(FL_DOWN_BOX);
         { 
-            this->imageBox = new Canvas(0, 55, 800, 550);
+            this->imageBox = new Canvas(0, 85, 800, 515);
         }
         this->imageScroll->end();
     } //imageScroll
@@ -204,60 +275,64 @@ namespace
 {
 void OnFileNewMenu(Fl_Menu_* m, void*)
 {
-    BtreeGUI* ui = reinterpret_cast<BtreeGUI*>(m->window()->user_data());
-    if (ui != nullptr)
+    handleException(m->window(), [&](BtreeGUI* ui)
     {
-        Fl_File_Chooser chooser(ui->app.getWorkDir().c_str(),
-            "Tree Files (*.{itr})",
-            Fl_File_Chooser::CREATE,
-            "New tree");
-
-        chooser.show();
-
-        while (chooser.shown())
+        if (ui != nullptr)
         {
-            Fl::wait();
-        }
+            Fl_File_Chooser chooser(ui->app.getWorkDir().c_str(),
+                "Tree Files (*.{itr})",
+                Fl_File_Chooser::CREATE,
+                "New tree");
 
-        if (chooser.count() >= 1)
-        {
-            std::string path = chooser.value();
-            std::string fname = fl_filename_name(path.c_str());
-            path.resize(path.size() - fname.size());
-            ui->app.setWorkDir(path);
-            ui->app.makeNewTree(chooser.value());
-            ui->mainWindow->redraw();
+            chooser.show();
+
+            while (chooser.shown())
+            {
+                Fl::wait();
+            }
+
+            if (chooser.count() >= 1)
+            {
+                std::string path = chooser.value();
+                std::string fname = fl_filename_name(path.c_str());
+                path.resize(path.size() - fname.size());
+                ui->app.setWorkDir(path);
+                ui->app.makeNewTree(chooser.value());
+                ui->mainWindow->redraw();
+            }
         }
-    }
+    });
 }
 
 void OnFileOpenMenu(Fl_Menu_* m, void*)
 {
-    BtreeGUI* ui = reinterpret_cast<BtreeGUI*>(m->window()->user_data());
-    if (ui != nullptr)
+    handleException(m->window(), [&](BtreeGUI* ui)
     {
-        Fl_File_Chooser chooser(ui->app.getWorkDir().c_str(),
-            "Tree Files (*.{itr})",
-            Fl_File_Chooser::SINGLE,
-            "Open tree");
-
-        chooser.show();
-
-        while (chooser.shown())
+        if (ui != nullptr)
         {
-            Fl::wait();
-        }
+            Fl_File_Chooser chooser(ui->app.getWorkDir().c_str(),
+                "Tree Files (*.{itr})",
+                Fl_File_Chooser::SINGLE,
+                "Open tree");
 
-        if (chooser.count() >= 1)
-        {
-            std::string path = chooser.value();
-            std::string fname = fl_filename_name(path.c_str());
-            path.resize(path.size() - fname.size());
-            ui->app.setWorkDir(path);
-            ui->app.openTree(chooser.value());
-            ui->mainWindow->redraw();
+            chooser.show();
+
+            while (chooser.shown())
+            {
+                Fl::wait();
+            }
+
+            if (chooser.count() >= 1)
+            {
+                std::string path = chooser.value();
+                std::string fname = fl_filename_name(path.c_str());
+                path.resize(path.size() - fname.size());
+                ui->app.setWorkDir(path);
+                ui->app.openTree(chooser.value());
+                ui->mainWindow->redraw();
+            }
         }
-    }
+    });
 }
 
 void OnQuit(Fl_Menu_* m, void*)
@@ -267,31 +342,37 @@ void OnQuit(Fl_Menu_* m, void*)
 
 void OnAddItem(Fl_Button* b, void*)
 {
-    BtreeGUI* ui = reinterpret_cast<BtreeGUI*>(b->window()->user_data());
-    if (ui != nullptr)
+    handleException(b->window(), [&](BtreeGUI* ui)
     {
-        ui->app.addItem(static_cast<unsigned int>(ui->itemIn->value()));
-        ui->mainWindow->redraw();
-    }
+        if (ui != nullptr)
+        {
+            ui->app.addItem(static_cast<unsigned int>(ui->itemIn->value()));
+            ui->mainWindow->redraw();
+        }
+    });
 }
 
 void OnDelItem(Fl_Button* b, void*)
 {
-    BtreeGUI* ui = reinterpret_cast<BtreeGUI*>(b->window()->user_data());
-    if (ui != nullptr)
+    handleException(b->window(), [&](BtreeGUI* ui)
     {
-        ui->app.delItem(static_cast<unsigned int>(ui->itemIn->value()));
-        ui->mainWindow->redraw();
-    }
+        if (ui != nullptr)
+        {
+            ui->app.delItem(static_cast<unsigned int>(ui->itemIn->value()));
+            ui->mainWindow->redraw();
+        }
+    });
 }
 
 void OnClear(Fl_Button* b, void*)
 {
-    BtreeGUI* ui = reinterpret_cast<BtreeGUI*>(b->window()->user_data());
-    if (ui != nullptr)
+    handleException(b->window(), [&](BtreeGUI* ui)
     {
-        ui->app.clearItems();
-        ui->mainWindow->redraw();
-    }
+        if (ui != nullptr)
+        {
+            ui->app.clearItems();
+            ui->mainWindow->redraw();
+        }
+    });
 }
 }

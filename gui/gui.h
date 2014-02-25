@@ -15,6 +15,7 @@
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Value_Output.H>
 #include <FL/Fl_Check_Button.H>
+#include <FL/Fl_Text_Display.H>
 
 #include <string>
 #include <memory>
@@ -46,6 +47,13 @@ private:
 
 };
 
+class MainWindow : public Fl_Double_Window
+{
+public:
+    MainWindow(int width, int height, const char* name);
+    virtual int handle(int event);
+};
+
 class BtreeGUI
 {
 public:
@@ -53,7 +61,7 @@ public:
     void Show(int argc, char** argv);
 
 public:
-    Fl_Double_Window *mainWindow;
+    MainWindow *mainWindow;
     Fl_Menu_Bar* menuBar;
     static Fl_Menu_Item menu[];
 
@@ -63,10 +71,16 @@ public:
     Fl_Button *delItemBtn;
     Fl_Button *clearBtn;
 
+    Fl_Text_Display* creationOrder;
+    Fl_Text_Display* textTree;
+
+
     Fl_Scroll *imageScroll;
     Canvas *imageBox;
 
     Application app;
+
+    std::string errMsg;
 
 private:
     BtreeGUI(const BtreeGUI&);

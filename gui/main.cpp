@@ -7,36 +7,11 @@
 
 int main(int argc, char **argv)
 {
-    try
-    {
-        fl_message_title_default("Btree Index visualization");
+    fl_message_title_default("Btree Index visualization");
 
-        BtreeGUI ui;
-        ui.Show(argc, argv);
+    BtreeGUI ui;
 
-        bool done = false;
-        while (!done)
-        {
-            try
-            {
-                if (!Fl::wait())
-                {
-                    done = true;
-                }
-            }
-            catch (std::exception& err)
-            {
-                fl_alert(err.what());
-            }
-        }
-    }
-    catch (std::exception& err)
-    {
-        fl_alert(err.what());
-    }
-    catch (...)
-    {
-        fl_alert("Unhanded error!");
-    }
-    return 0;
+    ui.Show(argc, argv);
+
+    return Fl::run();
 }
