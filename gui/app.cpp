@@ -1,5 +1,7 @@
 #include "app.h"
 
+#include <sstream>
+
 static const size_t BTREE_ORDER = 4;
 
 Application::Application()
@@ -99,6 +101,9 @@ void Application::addItem(unsigned int val)
     {
         auto i = this->dataFile->append(val, btree::PackPODFileRecord<decltype(val)>);
         tree->insert(val, i);
+        std::stringstream buf;
+        buf << ";" << val;
+        creationOrderText += buf.str();
     }
 }
 
@@ -145,3 +150,7 @@ size_t Application::getTreeOrder() const
     return BTREE_ORDER;
 }
 
+const std::string& Application::getCreationOrderText() const
+{
+    return  this->creationOrderText;
+}

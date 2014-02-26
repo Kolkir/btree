@@ -29,6 +29,7 @@ public:
     size_t getTreeHeight() const;
     size_t getTreeOrder() const;
 
+    const std::string& getCreationOrderText() const;
 private:
     Application(const Application&);
     Application& operator=(const Application&);
@@ -43,6 +44,7 @@ private:
     std::fstream indexFileStream;
     std::unique_ptr<TreeType> tree;
     std::string fname;
+    std::string creationOrderText;
 };
 
 #endif

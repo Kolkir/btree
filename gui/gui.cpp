@@ -267,9 +267,13 @@ BtreeGUI::BtreeGUI()
 
             this->creationOrder = new Fl_Text_Display(120, 55, 250, 25, "Creation Order");
             this->creationOrder->align(FL_ALIGN_LEFT);
+            this->creationOrderBuffer = new Fl_Text_Buffer();
+            this->creationOrder->buffer(this->creationOrderBuffer);
 
             this->textTree = new Fl_Text_Display(450, 55, 250, 25, "Text Tree");
             this->textTree->align(FL_ALIGN_LEFT);
+            this->textTreeBuffer = new Fl_Text_Buffer();
+            this->textTree->buffer(this->textTreeBuffer);
         }
         o->end();//group
     }
@@ -376,6 +380,7 @@ void OnAddItem(Fl_Button* b, void*)
         if (ui != nullptr)
         {
             ui->app.addItem(static_cast<unsigned int>(ui->itemIn->value()));
+            ui->creationOrderBuffer->text(ui->app.getCreationOrderText().c_str());
             ui->mainWindow->redraw();
         }
     });

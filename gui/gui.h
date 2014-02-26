@@ -72,8 +72,10 @@ public:
     Fl_Button *clearBtn;
 
     Fl_Text_Display* creationOrder;
-    Fl_Text_Display* textTree;
+    Fl_Text_Buffer * creationOrderBuffer;
 
+    Fl_Text_Display* textTree;
+    Fl_Text_Buffer * textTreeBuffer;
 
     Fl_Scroll *imageScroll;
     Canvas *imageBox;
