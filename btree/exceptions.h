@@ -2,6 +2,7 @@
 #define _EXCEPTIONS_H_
 
 #include <stdexcept>
+#include <exception>
 
 namespace btree
 {
@@ -9,14 +10,20 @@ namespace btree
     {
     public:
         explicit BTreeException(const std::string& msg)
-            : std::exception(msg.c_str())
+            : msg(msg.c_str())
         {
         }
 
         explicit BTreeException(const char *msg)
-            : std::exception(msg)
+            : msg(msg)
         {
         }
+        virtual const char* what()
+        {
+            return msg.c_str();
+        }
+    private:
+        std::string msg;
     };
 
     class InvalidKeyLength : public BTreeException

@@ -11,7 +11,7 @@
 
 namespace btree
 {
-    
+
     template<class T, class Enable = void>
     class PodKey final
     {
@@ -28,7 +28,7 @@ namespace btree
         {
             stream.pack(value);
         }
-    
+
         void unpack(Key& value, IOStream& stream) const
         {
             stream.unpack(value);
@@ -50,11 +50,11 @@ namespace btree
                 throw InvalidKeyLength("Can't store a key");
             }
             stream.pack(value.length());
-            Key str(Len, Key::value_type(0));
+            Key str(Len, typename Key::value_type(0));
             std::copy(value.begin(), value.end(), str.begin());
             stream.pack(str);
         }
-    
+
         void unpack(Key& value, IOStream& stream) const
         {
             size_t size = 0;

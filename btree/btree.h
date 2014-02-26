@@ -103,9 +103,9 @@ public:
         KeyType prevLargestKey(thisNode->largestKey());
 
         // test for special case of new largest key in tree
-        if (KeyDef::Less()(thisNode->largestKey(), key))
+        if (typename KeyDef::Less()(thisNode->largestKey(), key))
         {
-            newLargest = true; 
+            newLargest = true;
         }
 
         thisNode->insert(key, value);
@@ -127,7 +127,7 @@ public:
             // split the node
             newNode = this->newNode();
             thisNode->split(*newNode);
-            this->store(*thisNode); 
+            this->store(*thisNode);
             this->store(*newNode);
             --level; // go up to parent level
             if (level < 0)
@@ -186,7 +186,7 @@ public:
                 // if largest key in thisNode was changed update upper nodes
                 KeyType newLargestKey(thisNode->largestKey());
 
-                bool largestChanged = KeyDef::Less()(prevLargestKey, newLargestKey);
+                bool largestChanged = typename KeyDef::Less()(prevLargestKey, newLargestKey);
 
                 if (largestChanged)
                 {
@@ -210,7 +210,7 @@ public:
                         // if largest key in thisNode was changed update upper nodes
                         KeyType newLargestKey(thisNode->largestKey());
 
-                        bool largestChanged = KeyDef::Less()(prevLargestKey, newLargestKey);
+                        bool largestChanged = typename KeyDef::Less()(prevLargestKey, newLargestKey);
 
                         if (largestChanged)
                         {
@@ -218,8 +218,8 @@ public:
                         }
 
                         KeyType newSiblingLargestKey(sibling->largestKey());
-                        
-                        largestChanged = KeyDef::Less()(siblingLargestKey, newSiblingLargestKey);
+
+                        largestChanged = typename KeyDef::Less()(siblingLargestKey, newSiblingLargestKey);
 
                         if (largestChanged)
                         {
@@ -234,7 +234,7 @@ public:
                     {
                         KeyType newSiblingLargestKey(sibling->largestKey());
 
-                        bool largestChanged = KeyDef::Less()(siblingLargestKey, newSiblingLargestKey);
+                        bool largestChanged = typename KeyDef::Less()(siblingLargestKey, newSiblingLargestKey);
 
                         if (largestChanged)
                         {
@@ -329,7 +329,7 @@ public:
                 if (curKeyNode->node)
                 {
                     for_each(curKeyNode->node->begin(), curKeyNode->node->end(),
-                        [&](const Node::MapIndex::value_type& val)
+                        [&](const typename Node::MapIndex::value_type& val)
                     {
                         KeyNodePtr newNode(new KeyNode());
                         if (level < (this->height - 1))
@@ -376,7 +376,7 @@ private:
             if (!reloaded)
             {
                 if (level >= this->nodes.size() || //  check node at this level loaded
-                    !this->nodes.at(level)->equal(key, recLocation)) //prevent unnessary loading 
+                    !this->nodes.at(level)->equal(key, recLocation)) //prevent unnessary loading
                 {
                     reloaded = true;
                     this->nodes.resize(level); //remove loaded nodes from the other branch
@@ -393,7 +393,7 @@ private:
     NodePtr getSibling(const KeyType& key, int level)
     {
         assert(level >= 1);
-        if (level >= 1 && 
+        if (level >= 1 &&
             static_cast<size_t>(level) < this->nodes.size())
         {
             auto parent = this->nodes[level - 1];

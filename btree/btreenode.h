@@ -79,23 +79,23 @@ public:
     {
         this->index.insert(std::make_pair(key, loc));
     }
-    
+
     bool equal(const KeyType& key, const FileLocation& loc)
     {
         if (this->fileLocation && !this->index.empty())
         {
             const auto& lKey = this->index.rbegin()->first;
-            return (!KeyDef::Less()(lKey , key) &&
-                    !KeyDef::Less()(key , lKey) &&
+            return (!typename KeyDef::Less()(lKey , key) &&
+                    !typename KeyDef::Less()(key , lKey) &&
                     loc == *this->fileLocation);
         }
         return false;
     }
-    
+
     void split(BTreeNode& newNode)
     {
         auto midpt = (this->index.size() + 1) / 2;
-        
+
         auto i = this->index.begin();
         std::advance(i, midpt);
         auto s = i;
@@ -182,7 +182,7 @@ public:
     bool getLeft(const KeyType& key, FileLocation& loc)
     {
         auto i = this->index.find(key);
-        if (i != this->index.end() && 
+        if (i != this->index.end() &&
             i != this->index.begin())
         {
             loc = std::prev(i)->second;
@@ -212,12 +212,12 @@ public:
     {
         return this->fileLocation.get();
     }
- 
+
     typename MapIndex::const_iterator begin() const
     {
         return this->index.begin();
     }
- 
+
     typename MapIndex::const_iterator end() const
     {
         return this->index.end();
@@ -225,11 +225,11 @@ public:
 
     template <class TKeyDef>
     friend void BTreeNodePack(const BTreeNode<TKeyDef>& node, IOStream& stream);
-    
+
 
     template<class TKeyDef>
     friend void BTreeNodeUnPack(BTreeNode<TKeyDef>& node, IOStream& stream);
-    
+
 
 private:
     BTreeNode(const BTreeNode&);
@@ -281,7 +281,7 @@ inline void BTreeNodeUnPack(BTreeNode<TKeyDef>& node, IOStream& stream)
     FileLocation loc;
 
     node.index.clear();
-    
+
     for (size_t i = 0; i < indexCount; ++i)
     {
         node.keyDef.unpack(key, stream);

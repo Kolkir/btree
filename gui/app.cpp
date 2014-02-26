@@ -61,7 +61,7 @@ void Application::open(const std::string& fname, bool create)
         this->dataFileStream.open(fname, std::ios::in | std::ios::out | std::ios::binary);
         if (this->dataFileStream)
         {
-            this->dataFile = std::make_unique<btree::RecordFile>(this->dataFileStream);
+            this->dataFile.reset(new btree::RecordFile(this->dataFileStream));
         }
         else
         {
@@ -71,7 +71,7 @@ void Application::open(const std::string& fname, bool create)
         this->indexFileStream.open(fname + ".idx", std::ios::in | std::ios::out | std::ios::binary);
         if (this->indexFileStream)
         {
-            this->tree = std::make_unique<TreeType>(BTREE_ORDER);
+            this->tree.reset(new TreeType(BTREE_ORDER));
             if (create)
             {
                 this->tree->create(this->indexFileStream);
