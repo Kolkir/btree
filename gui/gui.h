@@ -39,7 +39,7 @@ public:
     virtual void draw();
 private:
     ChildrenPoints drawNodeRec(size_t treeHeight, const Application::TreeType::KeyNodePtr& node, size_t level, int rightShift);
-    void drawNode(const Application::TreeType::KeyNodePtr& node, int xpos, int ypos);
+    void drawNode(const Application::TreeType::KeyNodePtr& node, int xpos, int ypos, bool isLast, bool isRoot);
 private:
     int nodeWidth;
     int nodeHeight;

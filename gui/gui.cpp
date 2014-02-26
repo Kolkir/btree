@@ -73,7 +73,7 @@ Canvas::Canvas(int x, int y, int w, int h)
 {
 }
 
-void Canvas::drawNode(const Application::TreeType::KeyNodePtr& node, int xpos, int ypos)
+void Canvas::drawNode(const Application::TreeType::KeyNodePtr& node, int xpos, int ypos, bool isLast, bool isRoot)
 {
     std::stringstream buf;
     std::for_each(node->children.begin(), node->children.end(),
@@ -104,10 +104,22 @@ void Canvas::drawNode(const Application::TreeType::KeyNodePtr& node, int xpos, i
             nodeWidth,
             nodeHeight);
 
-    fl_line(x() + xpos + nodeWidth / 2,
-            y() + ypos,
-            x() + xpos + nodeWidth / 2,
-            y() + ypos - nodeSpace / 2);
+    if (!isRoot)
+    {
+        fl_line(x() + xpos + nodeWidth / 2,
+                y() + ypos,
+                x() + xpos + nodeWidth / 2,
+                y() + ypos - nodeSpace / 2);
+    }
+
+    if (!isLast)
+    {
+        fl_line(x() + xpos + nodeWidth / 2,
+                y() + ypos + nodeHeight,
+                x() + xpos + nodeWidth / 2,
+                y() + ypos + nodeHeight + nodeSpace / 2);
+
+    }
 }
 
 ChildrenPoints Canvas::drawNodeRec(size_t treeHeight, const Application::TreeType::KeyNodePtr& node, size_t level, int rightShift)
@@ -130,12 +142,14 @@ ChildrenPoints Canvas::drawNodeRec(size_t treeHeight, const Application::TreeTyp
         size_t nodeStart = childrenStart + (childrenEnd - childrenStart) / 2 - nodeWidth / 2;
         size_t ypos = nodeSpace + (level - 1) * (nodeHeight + nodeSpace);
         drawNode(node,
-            nodeStart,
-            ypos);
+                 nodeStart,
+                 ypos,
+                 false,
+                 level == 1);
 
-        fl_line(x() + nodeStart,
+        fl_line(x() + nodeStart - nodeSpace / 2,
                 y() + ypos + nodeHeight + nodeSpace / 2,
-                x() + nodeStart + nodeWidth,
+                x() + nodeStart + nodeWidth + nodeSpace / 2,
                 y() + ypos + nodeHeight + nodeSpace / 2);
 
         return ChildrenPoints(nodeStart, nodeStart + nodeWidth, internalRightShift + nodeSpace * 2);
@@ -143,8 +157,10 @@ ChildrenPoints Canvas::drawNodeRec(size_t treeHeight, const Application::TreeTyp
     else
     {
         drawNode(node,
-            rightShift,
-            nodeSpace + (level - 1) * (nodeHeight + nodeSpace));
+                 rightShift,
+                 nodeSpace + (level - 1) * (nodeHeight + nodeSpace),
+                 true,
+                 level == 1);
         return ChildrenPoints(rightShift, rightShift + nodeWidth, rightShift + nodeWidth + nodeSpace);
     }
 
@@ -248,7 +264,7 @@ BtreeGUI::BtreeGUI()
 
             this->clearBtn = new Fl_Button(left, 25, 60, 25, "Clear all");
             this->clearBtn->callback((Fl_Callback*) OnClear);
-            
+
             this->creationOrder = new Fl_Text_Display(120, 55, 250, 25, "Creation Order");
             this->creationOrder->align(FL_ALIGN_LEFT);
 
@@ -257,10 +273,10 @@ BtreeGUI::BtreeGUI()
         }
         o->end();//group
     }
-    { 
+    {
         this->imageScroll = new Fl_Scroll(0, 85, 800, 515);
         this->imageScroll->box(FL_DOWN_BOX);
-        { 
+        {
             this->imageBox = new Canvas(0, 85, 800, 515);
         }
         this->imageScroll->end();
