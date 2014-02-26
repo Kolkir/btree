@@ -147,9 +147,9 @@ ChildrenPoints Canvas::drawNodeRec(size_t treeHeight, const Application::TreeTyp
                  false,
                  level == 1);
 
-        fl_line(x() + nodeStart - nodeSpace / 2,
+        fl_line(x() + childrenStart + nodeWidth / 2,
                 y() + ypos + nodeHeight + nodeSpace / 2,
-                x() + nodeStart + nodeWidth + nodeSpace / 2,
+                x() + childrenEnd - nodeWidth / 2,
                 y() + ypos + nodeHeight + nodeSpace / 2);
 
         return ChildrenPoints(nodeStart, nodeStart + nodeWidth, internalRightShift + nodeSpace * 2);
@@ -267,11 +267,13 @@ BtreeGUI::BtreeGUI()
 
             this->creationOrder = new Fl_Text_Display(120, 55, 250, 25, "Creation Order");
             this->creationOrder->align(FL_ALIGN_LEFT);
+            this->creationOrder->scrollbar_width(3);
             this->creationOrderBuffer = new Fl_Text_Buffer();
             this->creationOrder->buffer(this->creationOrderBuffer);
 
             this->textTree = new Fl_Text_Display(450, 55, 250, 25, "Text Tree");
             this->textTree->align(FL_ALIGN_LEFT);
+            this->textTree->scrollbar_width(3);
             this->textTreeBuffer = new Fl_Text_Buffer();
             this->textTree->buffer(this->textTreeBuffer);
         }
