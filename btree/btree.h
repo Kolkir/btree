@@ -328,17 +328,18 @@ public:
             {
                 if (curKeyNode->node)
                 {
-                    for_each(curKeyNode->node->begin(), curKeyNode->node->end(),
-                        [&](const typename Node::MapIndex::value_type& val)
+                    auto i = curKeyNode->node->begin();
+                    auto e = curKeyNode->node->end();
+                    for(; i != e; ++i)
                     {
                         KeyNodePtr newNode(new KeyNode());
                         if (level < (this->height - 1))
                         {
-                            newNode->node = this->fetch(val.second);
+                            newNode->node = this->fetch(i->second);
                         }
-                        curKeyNode->children.insert(std::make_pair(val.first, newNode));
+                        curKeyNode->children.insert(std::make_pair(i->first, newNode));
                         nextLevel.push_back(newNode);
-                    });
+                    }
                 }
             });
 
